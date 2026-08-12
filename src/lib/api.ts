@@ -1,5 +1,5 @@
 import { getToken } from './auth';
-import type { CreateListingInput, ListingDraft, Property } from '@/types/property';
+import type { CreateListingInput, ListingDraft, Property, PublicProperty } from '@/types/property';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/api';
 
@@ -55,4 +55,14 @@ export const api = {
     request<{ listing: Property }>('/listings', { method: 'POST', body: JSON.stringify(input) }),
 
   getMyListings: () => request<{ listings: Property[] }>('/listings/mine'),
+
+  // Public — basic text/city matching, not AI-ranked (see listing.service.ts).
+  searchListings: (params: { q?: string; city?: string; limit?: number } = {}) => {
+    const query = new URLSearchParams();
+    if (params.q) query.set('q', params.q);
+    if (params.city) query.set('city', params.city);
+    if (params.limit) query.set('limit', String(params.limit));
+    const qs = query.toString();
+    return request<{ listings: PublicProperty[] }>(`/listings${qs ? `?${qs}` : ''}`);
+  },
 };

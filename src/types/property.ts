@@ -81,3 +81,15 @@ export interface Property extends CreateListingInput {
   createdAt: string;
   updatedAt: string;
 }
+
+// Shape returned by the public GET /api/listings search endpoint — same as
+// Property but with createdBy stripped (never exposed publicly) and
+// replaced by the one derived boolean the UI actually needs.
+export interface PublicProperty extends CreateListingInput {
+  _id: string;
+  source: 'internal' | 'rentcast';
+  status: PropertyStatus;
+  agentVerified: boolean;
+  createdAt: string;
+  updatedAt: string;
+}

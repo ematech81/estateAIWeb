@@ -39,37 +39,48 @@ export default function RegisterPage() {
   }
 
   return (
-    <main className="mx-auto flex min-h-screen max-w-md flex-col justify-center px-6 py-12">
-      <h1 className="mb-6 text-2xl font-bold text-slate-900">Become a Nigerian Property Agent</h1>
-      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-        <label className="flex flex-col gap-1 text-sm font-medium text-slate-700">
-          I am a...
-          <select
-            value={role}
-            onChange={(e) => setRole(e.target.value as typeof role)}
-            className="rounded-md border border-slate-300 px-3 py-2"
-          >
-            <option value="agent">Individual Agent</option>
-            <option value="agency">Agency</option>
-            <option value="owner">Property Owner</option>
-          </select>
-        </label>
-        <Field label="Full name" value={name} onChange={setName} required />
-        <Field label="Email" type="email" value={email} onChange={setEmail} required />
-        <Field label="Password" type="password" value={password} onChange={setPassword} required minLength={8} />
-        <Field label="Phone (optional)" value={phone} onChange={setPhone} />
-        {role !== 'agent' && (
-          <Field label="Business / Agency name (optional)" value={businessName} onChange={setBusinessName} />
-        )}
-        {error && <p className="text-sm text-red-600">{error}</p>}
-        <button
-          type="submit"
-          disabled={submitting}
-          className="mt-2 rounded-md bg-slate-900 px-4 py-2 font-medium text-white hover:bg-slate-700 disabled:opacity-50"
-        >
-          {submitting ? 'Creating account…' : 'Create account'}
-        </button>
-      </form>
+    <main className="flex min-h-screen flex-col justify-center bg-surface-gray-50">
+      <div className="container-app max-w-md py-12">
+        <h1 className="headline-md mb-stack-md text-on-surface">
+          Become a Nigerian Property Agent
+        </h1>
+        <form onSubmit={handleSubmit} className="flex flex-col gap-stack-md">
+          <label className="label-md flex flex-col gap-1 text-on-surface-variant">
+            I am a...
+            <select
+              value={role}
+              onChange={(e) => setRole(e.target.value as typeof role)}
+              className="input-standard"
+            >
+              <option value="agent">Individual Agent</option>
+              <option value="agency">Agency</option>
+              <option value="owner">Property Owner</option>
+            </select>
+          </label>
+          <Field label="Full name" value={name} onChange={setName} required />
+          <Field label="Email" type="email" value={email} onChange={setEmail} required />
+          <Field
+            label="Password"
+            type="password"
+            value={password}
+            onChange={setPassword}
+            required
+            minLength={8}
+          />
+          <Field label="Phone (optional)" value={phone} onChange={setPhone} />
+          {role !== 'agent' && (
+            <Field
+              label="Business / Agency name (optional)"
+              value={businessName}
+              onChange={setBusinessName}
+            />
+          )}
+          {error && <p className="body-md text-error">{error}</p>}
+          <button type="submit" disabled={submitting} className="btn-primary mt-stack-sm">
+            {submitting ? 'Creating account…' : 'Create account'}
+          </button>
+        </form>
+      </div>
     </main>
   );
 }
@@ -90,7 +101,7 @@ function Field({
   minLength?: number;
 }) {
   return (
-    <label className="flex flex-col gap-1 text-sm font-medium text-slate-700">
+    <label className="label-md flex flex-col gap-1 text-on-surface-variant">
       {label}
       <input
         type={type}
@@ -98,7 +109,7 @@ function Field({
         required={required}
         minLength={minLength}
         onChange={(e) => onChange(e.target.value)}
-        className="rounded-md border border-slate-300 px-3 py-2 font-normal"
+        className="input-standard"
       />
     </label>
   );

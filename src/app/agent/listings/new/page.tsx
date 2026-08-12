@@ -149,130 +149,138 @@ export default function NewListingPage() {
   }
 
   return (
-    <main className="mx-auto max-w-2xl px-6 py-12">
-      <h1 className="mb-2 text-2xl font-bold text-slate-900">Describe your property</h1>
-      <p className="mb-6 text-slate-600">
-        Write it the way you&apos;d tell a client about it. AI will structure it into a listing —
-        you review and edit before anything is published.
-      </p>
+    <main className="min-h-screen bg-surface-gray-50">
+      <div className="container-app max-w-2xl py-12">
+        <h1 className="headline-md text-on-surface">Describe your property</h1>
+        <p className="body-md mb-stack-md mt-1 text-on-surface-variant">
+          Write it the way you&apos;d tell a client about it. AI will structure it into a listing —
+          you review and edit before anything is published.
+        </p>
 
-      <textarea
-        value={rawText}
-        onChange={(e) => setRawText(e.target.value)}
-        rows={5}
-        placeholder="e.g. Newly built 3 bedroom duplex at Lekki Phase 1, ₦8 million per year. It has a BQ, swimming pool, parking space, 24/7 security and prepaid meter."
-        className="w-full rounded-md border border-slate-300 p-3"
-      />
-      <button
-        onClick={handleGenerateDraft}
-        disabled={generating || rawText.trim().length < 10}
-        className="mt-3 rounded-md bg-slate-900 px-4 py-2 font-medium text-white hover:bg-slate-700 disabled:opacity-50"
-      >
-        {generating ? 'Generating draft…' : 'Generate draft with AI'}
-      </button>
-
-      {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
-
-      {form && (
-        <div className="mt-8 flex flex-col gap-4 border-t border-slate-200 pt-8">
-          <h2 className="text-lg font-semibold text-slate-900">Review &amp; edit</h2>
-          <p className="text-sm text-slate-500">
-            Only what you confirm here gets published — nothing is invented beyond what you wrote.
-          </p>
-
-          <Field label="Title" value={form.title} onChange={(v) => updateField('title', v)} />
-          <label className="flex flex-col gap-1 text-sm font-medium text-slate-700">
-            Description
-            <textarea
-              value={form.description}
-              onChange={(e) => updateField('description', e.target.value)}
-              rows={4}
-              className="rounded-md border border-slate-300 p-2 font-normal"
-            />
-          </label>
-
-          <div className="grid grid-cols-2 gap-4">
-            <Select
-              label="Listing type"
-              value={form.listingType}
-              options={LISTING_TYPES}
-              onChange={(v) => updateField('listingType', v as ListingType)}
-            />
-            <Select
-              label="Property type"
-              value={form.propertyType}
-              options={PROPERTY_TYPES}
-              onChange={(v) => updateField('propertyType', v as PropertyType)}
-            />
-          </div>
-
-          <div className="grid grid-cols-3 gap-4">
-            <Field
-              label="Price amount"
-              type="number"
-              value={form.priceAmount}
-              onChange={(v) => updateField('priceAmount', v)}
-            />
-            <Field
-              label="Currency"
-              value={form.priceCurrency}
-              onChange={(v) => updateField('priceCurrency', v)}
-            />
-            <Select
-              label="Period"
-              value={form.pricePeriod}
-              options={PRICE_PERIODS}
-              onChange={(v) => updateField('pricePeriod', v as PricePeriod)}
-            />
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <Field label="City" value={form.city} onChange={(v) => updateField('city', v)} />
-            <Field
-              label="Area / District"
-              value={form.district}
-              onChange={(v) => updateField('district', v)}
-            />
-            <Field label="State" value={form.state} onChange={(v) => updateField('state', v)} />
-            <Field label="Address" value={form.address} onChange={(v) => updateField('address', v)} />
-          </div>
-
-          <div className="grid grid-cols-3 gap-4">
-            <Field
-              label="Bedrooms"
-              type="number"
-              value={form.bedrooms}
-              onChange={(v) => updateField('bedrooms', v)}
-            />
-            <Field
-              label="Bathrooms"
-              type="number"
-              value={form.bathrooms}
-              onChange={(v) => updateField('bathrooms', v)}
-            />
-            <Field
-              label="Size (sqm)"
-              type="number"
-              value={form.sizeSqm}
-              onChange={(v) => updateField('sizeSqm', v)}
-            />
-          </div>
-
-          <Field
-            label="Amenities (comma-separated)"
-            value={form.amenities}
-            onChange={(v) => updateField('amenities', v)}
+        {/* AI natural-language input — larger, sparkle affordance, glows
+            (not a hard shadow) on focus to read as the AI-powered field. */}
+        <div className="relative">
+          <SparkleIcon className="pointer-events-none absolute left-4 top-4 h-5 w-5 text-growth-emerald-500" />
+          <textarea
+            value={rawText}
+            onChange={(e) => setRawText(e.target.value)}
+            rows={5}
+            placeholder="e.g. Newly built 3 bedroom duplex at Lekki Phase 1, ₦8 million per year. It has a BQ, swimming pool, parking space, 24/7 security and prepaid meter."
+            className="ai-search-input pl-11"
           />
-
-          <button
-            onClick={handleSubmit}
-            disabled={submitting}
-            className="mt-2 rounded-md bg-green-700 px-4 py-2 font-medium text-white hover:bg-green-800 disabled:opacity-50"
-          >
-            {submitting ? 'Submitting…' : 'Confirm & submit listing'}
-          </button>
         </div>
-      )}
+        <button
+          onClick={handleGenerateDraft}
+          disabled={generating || rawText.trim().length < 10}
+          className="btn-primary mt-stack-sm"
+        >
+          {generating ? 'Generating draft…' : 'Generate draft with AI'}
+        </button>
+
+        {error && <p className="body-md mt-stack-md text-error">{error}</p>}
+
+        {form && (
+          <div className="mt-stack-lg flex flex-col gap-stack-md border-t border-border-gray-200 pt-stack-lg">
+            <h2 className="headline-md text-on-surface">Review &amp; edit</h2>
+            <p className="body-md text-on-surface-variant">
+              Only what you confirm here gets published — nothing is invented beyond what you
+              wrote.
+            </p>
+
+            <Field label="Title" value={form.title} onChange={(v) => updateField('title', v)} />
+            <label className="label-md flex flex-col gap-1 text-on-surface-variant">
+              Description
+              <textarea
+                value={form.description}
+                onChange={(e) => updateField('description', e.target.value)}
+                rows={4}
+                className="input-standard"
+              />
+            </label>
+
+            <div className="grid grid-cols-2 gap-stack-md">
+              <Select
+                label="Listing type"
+                value={form.listingType}
+                options={LISTING_TYPES}
+                onChange={(v) => updateField('listingType', v as ListingType)}
+              />
+              <Select
+                label="Property type"
+                value={form.propertyType}
+                options={PROPERTY_TYPES}
+                onChange={(v) => updateField('propertyType', v as PropertyType)}
+              />
+            </div>
+
+            <div className="grid grid-cols-3 gap-stack-md">
+              <Field
+                label="Price amount"
+                type="number"
+                value={form.priceAmount}
+                onChange={(v) => updateField('priceAmount', v)}
+              />
+              <Field
+                label="Currency"
+                value={form.priceCurrency}
+                onChange={(v) => updateField('priceCurrency', v)}
+              />
+              <Select
+                label="Period"
+                value={form.pricePeriod}
+                options={PRICE_PERIODS}
+                onChange={(v) => updateField('pricePeriod', v as PricePeriod)}
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-stack-md">
+              <Field label="City" value={form.city} onChange={(v) => updateField('city', v)} />
+              <Field
+                label="Area / District"
+                value={form.district}
+                onChange={(v) => updateField('district', v)}
+              />
+              <Field label="State" value={form.state} onChange={(v) => updateField('state', v)} />
+              <Field
+                label="Address"
+                value={form.address}
+                onChange={(v) => updateField('address', v)}
+              />
+            </div>
+
+            <div className="grid grid-cols-3 gap-stack-md">
+              <Field
+                label="Bedrooms"
+                type="number"
+                value={form.bedrooms}
+                onChange={(v) => updateField('bedrooms', v)}
+              />
+              <Field
+                label="Bathrooms"
+                type="number"
+                value={form.bathrooms}
+                onChange={(v) => updateField('bathrooms', v)}
+              />
+              <Field
+                label="Size (sqm)"
+                type="number"
+                value={form.sizeSqm}
+                onChange={(v) => updateField('sizeSqm', v)}
+              />
+            </div>
+
+            <Field
+              label="Amenities (comma-separated)"
+              value={form.amenities}
+              onChange={(v) => updateField('amenities', v)}
+            />
+
+            <button onClick={handleSubmit} disabled={submitting} className="btn-secondary mt-1">
+              {submitting ? 'Submitting…' : 'Confirm & submit listing'}
+            </button>
+          </div>
+        )}
+      </div>
     </main>
   );
 }
@@ -289,13 +297,13 @@ function Field({
   type?: string;
 }) {
   return (
-    <label className="flex flex-col gap-1 text-sm font-medium text-slate-700">
+    <label className="label-md flex flex-col gap-1 text-on-surface-variant">
       {label}
       <input
         type={type}
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="rounded-md border border-slate-300 px-3 py-2 font-normal"
+        className="input-standard"
       />
     </label>
   );
@@ -313,13 +321,9 @@ function Select({
   onChange: (v: string) => void;
 }) {
   return (
-    <label className="flex flex-col gap-1 text-sm font-medium text-slate-700">
+    <label className="label-md flex flex-col gap-1 text-on-surface-variant">
       {label}
-      <select
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className="rounded-md border border-slate-300 px-3 py-2 font-normal"
-      >
+      <select value={value} onChange={(e) => onChange(e.target.value)} className="input-standard">
         <option value="">Select…</option>
         {options.map((opt) => (
           <option key={opt} value={opt}>
@@ -328,5 +332,13 @@ function Select({
         ))}
       </select>
     </label>
+  );
+}
+
+function SparkleIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" className={className} aria-hidden="true">
+      <path d="M12 2l1.8 5.2L19 9l-5.2 1.8L12 16l-1.8-5.2L5 9l5.2-1.8L12 2zM19 14l.9 2.6L22.5 17.5l-2.6.9L19 21l-.9-2.6-2.6-.9 2.6-.9L19 14zM5 15l.7 1.9L7.6 17.6l-1.9.7L5 20.2l-.7-1.9-1.9-.7 1.9-.7L5 15z" />
+    </svg>
   );
 }
