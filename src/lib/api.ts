@@ -1,5 +1,6 @@
 import { getToken } from './auth';
 import type { CreateListingInput, ListingDraft, Property, PublicProperty } from '@/types/property';
+import type { Lead, LeadStatus } from '@/types/lead';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/api';
 
@@ -30,9 +31,23 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   return body as T;
 }
 
+// Matches the backend's toPublicUser() exactly (api/src/models/User.ts) —
+// used for both auth responses and the profile page's GET /users/me.
+export interface UserProfile {
+  id: string;
+  email: string;
+  name: string;
+  role: string;
+  phone?: string;
+  businessName?: string;
+  primaryLocation?: string;
+  verificationStatus: 'unverified' | 'pending' | 'verified';
+  createdAt: string;
+}
+
 export interface AuthResponse {
   token: string;
-  user: { id: string; email: string; name: string; role: string };
+  user: UserProfile;
 }
 
 export const api = {
@@ -43,6 +58,7 @@ export const api = {
     role: 'agent' | 'agency' | 'owner';
     phone?: string;
     businessName?: string;
+    primaryLocation?: string;
   }) => request<AuthResponse>('/auth/register', { method: 'POST', body: JSON.stringify(input) }),
 
   login: (input: { email: string; password: string }) =>
@@ -65,4 +81,27 @@ export const api = {
     const qs = query.toString();
     return request<{ listings: PublicProperty[] }>(`/listings${qs ? `?${qs}` : ''}`);
   },
+
+  // Public — same visibility rule as search (pending_review/active only).
+  getListing: (id: string) => request<{ listing: PublicProperty }>(`/listings/${id}`),
+
+  getMe: () => request<{ user: UserProfile }>('/users/me'),
+
+  updateProfile: (input: { name?: string; phone?: string; businessName?: string; primaryLocation?: string }) =>
+    request<{ user: UserProfile }>('/users/me', { method: 'PATCH', body: JSON.stringify(input) }),
+
+  // Public — a seeker contacting an agent isn't necessarily registered.
+  submitLead: (propertyId: string, input: { name: string; email: string; phone?: string; message?: string }) =>
+    request<{ lead: Lead }>('/leads', { method: 'POST', body: JSON.stringify({ propertyId, ...input }) }),
+
+  getMyLeads: () => request<{ leads: Lead[] }>('/leads/mine'),
+
+  updateLeadStatus: (id: string, status: LeadStatus) =>
+    request<{ lead: Lead }>(`/leads/${id}`, { method: 'PATCH', body: JSON.stringify({ status }) }),
+
+  getUploadSignature: () =>
+    request<{ timestamp: number; signature: string; apiKey: string; cloudName: string; folder: string }>(
+      '/uploads/signature',
+      { method: 'POST' },
+    ),
 };

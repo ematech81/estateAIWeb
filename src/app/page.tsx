@@ -4,6 +4,9 @@ import { FormEvent, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
+import { PageLoader } from '@/components/ui/PageLoader';
+import { LoadingButton } from '@/components/ui/LoadingButton';
+import { ImageCarousel } from '@/components/ui/ImageCarousel';
 import { api, ApiClientError } from '@/lib/api';
 import type { PublicProperty } from '@/types/property';
 
@@ -20,14 +23,18 @@ import type { PublicProperty } from '@/types/property';
 // - "Verified Listing" only renders when the listing's agent actually has
 //   verificationStatus "verified" — true for nobody yet, since there's no
 //   verification flow built. Never fabricated.
-// - Filter buttons (Location/Price Range/etc.), Save Search, Get Alerts,
-//   and the card's Details/Contact Agent buttons are inert placeholders —
-//   their destinations (property detail page, saved searches, lead
-//   capture) don't exist yet.
+// - Filter buttons (Location/Price Range/etc.), Save Search, and Get Alerts
+//   are still inert placeholders — saved searches/alerts aren't built yet.
+//   The card's Details/Contact Agent buttons are real now (property detail
+//   page + lead capture, see app/properties/[id]/page.tsx).
 export default function HomePage() {
   const [query, setQuery] = useState('');
   const [listings, setListings] = useState<PublicProperty[] | null>(null);
   const [error, setError] = useState<string | null>(null);
+  // Separate from `listings === null` (the very first load): tracks a
+  // re-search too, so hitting "Search" again with existing results still
+  // shows feedback instead of the page appearing to do nothing.
+  const [searching, setSearching] = useState(false);
 
   useEffect(() => {
     fetchListings();
@@ -36,12 +43,15 @@ export default function HomePage() {
 
   async function fetchListings(q?: string) {
     setError(null);
+    setSearching(true);
     try {
       const res = await api.searchListings(q ? { q } : {});
       setListings(res.listings);
     } catch (err) {
       setError(err instanceof ApiClientError ? err.message : 'Could not load listings right now.');
       setListings([]);
+    } finally {
+      setSearching(false);
     }
   }
 
@@ -76,10 +86,16 @@ export default function HomePage() {
                 placeholder="e.g., 3-bedroom apartment in Lekki, ₦5M - ₦8M, with a pool and 24/7 power"
                 className="body-lg w-full border-none bg-transparent py-4 pl-4 pr-32 text-on-surface placeholder:text-outline-variant focus:outline-none focus:ring-0"
               />
-              <button type="submit" className="btn-primary absolute right-4 gap-2">
+              <LoadingButton
+                type="submit"
+                loading={searching}
+                loadingText="Searching…"
+                variant="primary"
+                className="absolute right-4 gap-2"
+              >
                 Search
                 <span className="material-symbols-outlined text-[18px]">search</span>
-              </button>
+              </LoadingButton>
             </div>
           </form>
         </section>
@@ -125,12 +141,12 @@ export default function HomePage() {
         <section className="w-full">
           <h2 className="headline-md mb-6 text-on-surface">Top Matches for You</h2>
 
-          {listings === null && <p className="body-md text-on-surface-variant">Loading…</p>}
-          {error && <p className="body-md text-error">{error}</p>}
+          {(listings === null || searching) && <PageLoader label="Loading properties…" />}
+          {error && !searching && <p className="body-md text-error">{error}</p>}
 
-          {listings && listings.length === 0 && <EmptyResults />}
+          {!searching && listings && listings.length === 0 && <EmptyResults />}
 
-          {listings && listings.length > 0 && (
+          {!searching && listings && listings.length > 0 && (
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
               {listings.map((listing) => (
                 <PropertyCard key={listing._id} listing={listing} />
@@ -185,7 +201,6 @@ function EmptyResults() {
 }
 
 function PropertyCard({ listing }: { listing: PublicProperty }) {
-  const photo = listing.media[0];
   const specs: string[] = [];
   if (listing.specifications.bedrooms != null) specs.push(`${listing.specifications.bedrooms} Beds`);
   if (listing.specifications.bathrooms != null) specs.push(`${listing.specifications.bathrooms} Baths`);
@@ -193,17 +208,10 @@ function PropertyCard({ listing }: { listing: PublicProperty }) {
 
   return (
     <article className="card-property group flex flex-col">
-      <div className="relative aspect-video w-full bg-surface-container">
-        {photo ? (
-          // eslint-disable-next-line @next/next/no-img-element -- listing photos are agent-uploaded, not from a domain configured for next/image yet
-          <img src={photo} alt={listing.title} className="h-full w-full object-cover" />
-        ) : (
-          <div className="flex h-full w-full items-center justify-center text-on-surface-variant">
-            <span className="material-symbols-outlined text-[32px]">image</span>
-          </div>
-        )}
+      <div className="relative">
+        <ImageCarousel images={listing.media} alt={listing.title} className="aspect-video w-full" />
         {listing.agentVerified && (
-          <div className="absolute left-3 top-3 flex items-center gap-1 rounded-full border border-growth-emerald-500 bg-surface-container-lowest/90 px-3 py-1 backdrop-blur-sm">
+          <div className="absolute left-3 top-3 z-10 flex items-center gap-1 rounded-full border border-growth-emerald-500 bg-surface-container-lowest/90 px-3 py-1 backdrop-blur-sm">
             <span className="material-symbols-outlined text-[16px] text-growth-emerald-500">
               verified
             </span>
@@ -235,15 +243,15 @@ function PropertyCard({ listing }: { listing: PublicProperty }) {
         )}
 
         <div className="mt-auto flex gap-2">
-          <button
-            type="button"
-            className="flex-1 rounded border border-border-gray-200 bg-surface-gray-50 py-2 text-label-md text-on-surface transition-colors hover:bg-surface-container-high"
+          <Link
+            href={`/properties/${listing._id}`}
+            className="flex-1 rounded border border-border-gray-200 bg-surface-gray-50 py-2 text-center text-label-md text-on-surface transition-colors hover:bg-surface-container-high"
           >
             Details
-          </button>
-          <button type="button" className="btn-secondary flex-1">
+          </Link>
+          <Link href={`/properties/${listing._id}`} className="btn-secondary flex-1">
             Contact Agent
-          </button>
+          </Link>
         </div>
       </div>
     </article>

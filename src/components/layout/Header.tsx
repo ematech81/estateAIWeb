@@ -1,9 +1,14 @@
+'use client';
+
 import Link from 'next/link';
+import { useAuth } from '@/context/AuthContext';
 
 // Nav destinations that don't have a page yet (Discover/Invest/Agents/Help)
-// stay as inert placeholders — only Sign In / List Property go to real
-// routes. Swap in real hrefs as those pages get built.
+// stay as inert placeholders — only Sign In / List Property / Dashboard go
+// to real routes. Swap in real hrefs as those pages get built.
 export function Header() {
+  const { isAuthenticated } = useAuth();
+
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border-gray-200 bg-surface">
       <div className="container-app flex h-20 items-center justify-between">
@@ -27,15 +32,23 @@ export function Header() {
         </nav>
 
         <div className="flex items-center gap-4">
-          <Link
-            href="/login"
-            className="label-md hidden text-primary transition-opacity hover:opacity-80 md:block"
-          >
-            Sign In
-          </Link>
-          <Link href="/register" className="btn-primary">
-            List Property
-          </Link>
+          {isAuthenticated ? (
+            <Link href="/agent/dashboard" className="btn-primary">
+              Dashboard
+            </Link>
+          ) : (
+            <>
+              <Link
+                href="/login"
+                className="label-md hidden text-primary transition-opacity hover:opacity-80 md:block"
+              >
+                Sign In
+              </Link>
+              <Link href="/register" className="btn-primary">
+                List Property
+              </Link>
+            </>
+          )}
         </div>
       </div>
     </header>

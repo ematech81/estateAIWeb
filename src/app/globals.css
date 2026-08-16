@@ -172,4 +172,17 @@
   .ai-hero-search-inner {
     @apply relative flex items-center rounded-lg bg-surface-container-lowest;
   }
+
+  /* ---- AI-processing card glow ---- */
+  /* Ambient (not focus-only) version of the AI glow, for a card-level
+     surface that's entirely AI-driven (e.g. the natural-language listing
+     extraction step) rather than a single input. Intensifies on
+     focus-within so typing inside it reads as "live". */
+  .card-ai-glow {
+    box-shadow: 0 0 20px rgb(16 185 129 / 0.15);
+    transition: box-shadow 0.3s ease;
+  }
+  .card-ai-glow:focus-within {
+    box-shadow: 0 0 30px rgb(16 185 129 / 0.3);
+  }
 }

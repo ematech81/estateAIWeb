@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
+import { AuthProvider } from '@/context/AuthContext';
 import './globals.css';
 
 // Self-hosted at build time by Next.js (no runtime request to Google Fonts).
@@ -26,7 +27,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap"
         rel="stylesheet"
       />
-      <body className="bg-background font-sans text-on-surface antialiased">{children}</body>
+      <body className="bg-background font-sans text-on-surface antialiased">
+        <AuthProvider>{children}</AuthProvider>
+      </body>
     </html>
   );
 }
