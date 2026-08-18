@@ -17,13 +17,15 @@ const NAV_ITEMS = [
   { href: '/agent/leads', label: 'Leads', icon: 'group', match: 'leads' as const },
 ];
 
-// Shown for visual/roadmap parity with the reference design but not wired
-// to anything real yet — same "inert placeholder" convention used
-// elsewhere (Header's Discover/Invest/etc.), not hidden, just honest about
-// what's built.
-const INERT_ITEMS = [
-  { label: 'Analytics', icon: 'analytics' },
-  { label: 'Messages', icon: 'chat' },
+// Desktop-only secondary items — real pages now, but there's no room for
+// them in the mobile bottom tab bar's 4 slots (NAV_ITEMS above already
+// fills it). Messages deliberately has no `match`: it links to the same
+// /agent/leads page as "Leads" above (no second messaging system — see
+// the milestone plan), so it should never fight that nav item for the
+// active highlight.
+const SECONDARY_ITEMS = [
+  { href: '/agent/analytics', label: 'Analytics', icon: 'analytics', match: 'analytics' as const },
+  { href: '/agent/leads', label: 'Messages', icon: 'chat', match: undefined },
 ];
 
 function useActiveSection() {
@@ -32,6 +34,8 @@ function useActiveSection() {
   if (pathname?.startsWith('/agent/dashboard')) return 'dashboard';
   if (pathname?.startsWith('/agent/profile')) return 'profile';
   if (pathname?.startsWith('/agent/leads')) return 'leads';
+  if (pathname?.startsWith('/agent/analytics')) return 'analytics';
+  if (pathname?.startsWith('/agent/settings')) return 'settings';
   return null;
 }
 
@@ -82,15 +86,19 @@ export function AgentSidebar() {
               </Link>
             </li>
           ))}
-          {INERT_ITEMS.map((item) => (
+          {SECONDARY_ITEMS.map((item) => (
             <li key={item.label}>
-              <span
-                title={`${item.label} — coming soon`}
-                className="flex cursor-default items-center gap-3 rounded-xl px-4 py-3 text-on-surface-variant/50"
+              <Link
+                href={item.href}
+                className={
+                  active === item.match
+                    ? 'flex items-center gap-3 rounded-xl bg-secondary-container px-4 py-3 font-bold text-on-secondary-container transition-all'
+                    : 'flex items-center gap-3 rounded-xl px-4 py-3 text-on-surface-variant transition-all hover:bg-surface-container-high'
+                }
               >
                 <span className="material-symbols-outlined">{item.icon}</span>
                 <span className="label-md">{item.label}</span>
-              </span>
+              </Link>
             </li>
           ))}
         </ul>
@@ -105,22 +113,28 @@ export function AgentSidebar() {
           </Link>
           <ul className="flex flex-col gap-2">
             <li>
-              <span
-                title="Settings — coming soon"
-                className="flex cursor-default items-center gap-3 rounded-xl px-4 py-2 text-on-surface-variant/50"
+              <Link
+                href="/agent/settings"
+                className={
+                  active === 'settings'
+                    ? 'flex items-center gap-3 rounded-xl bg-secondary-container px-4 py-2 font-bold text-on-secondary-container transition-all'
+                    : 'flex items-center gap-3 rounded-xl px-4 py-2 text-on-surface-variant transition-all hover:bg-surface-container-high'
+                }
               >
                 <span className="material-symbols-outlined">settings</span>
                 <span className="label-md">Settings</span>
-              </span>
+              </Link>
             </li>
             <li>
-              <span
-                title="Help Center — coming soon"
-                className="flex cursor-default items-center gap-3 rounded-xl px-4 py-2 text-on-surface-variant/50"
+              {/* /help already exists (built earlier) — it just never had a
+                  sidebar link pointed at it. */}
+              <Link
+                href="/help"
+                className="flex items-center gap-3 rounded-xl px-4 py-2 text-on-surface-variant transition-all hover:bg-surface-container-high"
               >
                 <span className="material-symbols-outlined">help</span>
                 <span className="label-md">Help Center</span>
-              </span>
+              </Link>
             </li>
             <li>
               <button
@@ -154,8 +168,9 @@ export function AgentSidebar() {
         </div>
       </header>
 
-      {/* Mobile bottom tabs — real pages only (no room for the inert
-          Analytics/Messages placeholders in a 4-slot mobile bar). */}
+      {/* Mobile bottom tabs — NAV_ITEMS only; a 4-slot bar has no room for
+          SECONDARY_ITEMS (Analytics/Messages) too. Both are real pages,
+          just reachable via the desktop sidebar or a direct link on mobile. */}
       <nav className="fixed bottom-0 z-50 flex h-16 w-full items-center justify-around border-t border-border-gray-200 bg-surface-container-lowest md:hidden">
         {NAV_ITEMS.map((item) => (
           <Link

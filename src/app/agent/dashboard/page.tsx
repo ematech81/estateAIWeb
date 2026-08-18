@@ -8,11 +8,12 @@ import { useAuth } from '@/context/AuthContext';
 import { profileCompletionPercent } from '@/lib/profileCompletion';
 import { AgentLayout } from '@/components/layout/AgentLayout';
 import { PageLoader } from '@/components/ui/PageLoader';
+import { MetricCard } from '@/components/ui/MetricCard';
 import type { Property } from '@/types/property';
 
 export default function AgentDashboardPage() {
   const router = useRouter();
-  const { isAuthenticated, isLoading, user } = useAuth();
+  const { isAuthenticated, isLoading, user, logout } = useAuth();
   const [listings, setListings] = useState<Property[] | null>(null);
   const [leadCount, setLeadCount] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -35,6 +36,11 @@ export default function AgentDashboardPage() {
       .catch(() => {});
   }, [isLoading, isAuthenticated, router]);
 
+  function handleLogout() {
+    logout();
+    router.push('/');
+  }
+
   const activeCount = listings?.filter((l) => l.status === 'active').length ?? null;
   const completion = user ? profileCompletionPercent(user) : null;
 
@@ -50,13 +56,26 @@ export default function AgentDashboardPage() {
               Here is the overview of your real estate portfolio.
             </p>
           </div>
-          <Link
-            href="/agent/listings/new"
-            className="flex items-center gap-2 rounded-lg bg-trust-blue-900 px-4 py-2 text-label-md text-white transition-opacity hover:opacity-90 md:hidden"
-          >
-            <span className="material-symbols-outlined text-[18px]">add</span>
-            New Listing
-          </Link>
+          {/* Moved here from the public marketing Header, which no longer
+              duplicates it (AgentSidebar still has its own Log out control
+              too — this one's for a quick, explicit, always-visible exit
+              right from the dashboard itself). */}
+          <div className="flex items-center gap-4">
+            <button
+              type="button"
+              onClick={handleLogout}
+              className="label-md text-on-surface-variant transition-colors hover:text-primary"
+            >
+              Logout
+            </button>
+            <Link
+              href="/agent/listings/new"
+              className="flex items-center gap-2 rounded-lg bg-trust-blue-900 px-4 py-2 text-label-md text-white transition-opacity hover:opacity-90 md:hidden"
+            >
+              <span className="material-symbols-outlined text-[18px]">add</span>
+              New Listing
+            </Link>
+          </div>
         </div>
 
         {/* Metrics — real numbers only. The reference design's trend badges
@@ -116,20 +135,6 @@ export default function AgentDashboardPage() {
         </div>
       </div>
     </AgentLayout>
-  );
-}
-
-function MetricCard({ icon, label, value }: { icon: string; label: string; value: number | null }) {
-  return (
-    <div className="flex flex-col justify-between rounded-xl border border-border-gray-200 bg-surface-container-lowest p-6">
-      <div className="mb-4 w-fit rounded-lg bg-surface-container-low p-2 text-trust-blue-900">
-        <span className="material-symbols-outlined">{icon}</span>
-      </div>
-      <div>
-        <p className="label-md text-on-surface-variant">{label}</p>
-        <p className="headline-md mt-1 font-bold text-primary">{value ?? '…'}</p>
-      </div>
-    </div>
   );
 }
 

@@ -1,13 +1,12 @@
 'use client';
 
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 
-// Nav destinations that don't have a page yet (Discover/Invest/Agents/Help)
-// stay as inert placeholders — only Sign In / List Property / Dashboard go
-// to real routes. Swap in real hrefs as those pages get built.
 export function Header() {
   const { isAuthenticated } = useAuth();
+  const pathname = usePathname();
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border-gray-200 bg-surface">
@@ -23,19 +22,40 @@ export function Header() {
         </Link>
 
         <nav className="hidden h-full items-center gap-8 md:flex">
-          <span className="label-md flex h-full items-center border-b-2 border-primary pb-1 text-primary">
-            Discover
+          <NavLink href="/" label="Discover" active={pathname === '/'} />
+          <NavLink href="/agents" label="Agents" active={pathname?.startsWith('/agents') ?? false} />
+          {/* Not wired to a real page yet — see the blog-feature scoping
+              discussion before building it out. Same "honest placeholder"
+              convention used elsewhere (sidebar's Analytics/Messages before
+              they were real). */}
+          <span
+            title="Blog — coming soon"
+            className="label-md flex h-full cursor-default items-center text-on-surface-variant/50"
+          >
+            Blog
           </span>
-          <span className="label-md flex h-full items-center text-on-surface-variant">Invest</span>
-          <span className="label-md flex h-full items-center text-on-surface-variant">Agents</span>
-          <span className="label-md flex h-full items-center text-on-surface-variant">Help</span>
+          <NavLink href="/help" label="Help" active={pathname?.startsWith('/help') ?? false} />
         </nav>
 
         <div className="flex items-center gap-4">
           {isAuthenticated ? (
-            <Link href="/agent/dashboard" className="btn-primary">
-              Dashboard
-            </Link>
+            <>
+              {/* Logout lives on the dashboard now (and in AgentSidebar
+                  throughout the agent area) — this marketing header no
+                  longer duplicates it. Dashboard/Add-a-listing swap the
+                  visibility rule from before too: the filled CTA is always
+                  visible (mirrors "List Property" below), the plain link
+                  hides on mobile (mirrors "Sign In" below). */}
+              <Link
+                href="/agent/dashboard"
+                className="label-md hidden text-primary transition-opacity hover:opacity-80 md:block"
+              >
+                Dashboard
+              </Link>
+              <Link href="/agent/listings/new" className="btn-primary">
+                Add a listing
+              </Link>
+            </>
           ) : (
             <>
               <Link
@@ -52,5 +72,20 @@ export function Header() {
         </div>
       </div>
     </header>
+  );
+}
+
+function NavLink({ href, label, active }: { href: string; label: string; active: boolean }) {
+  return (
+    <Link
+      href={href}
+      className={
+        active
+          ? 'label-md flex h-full items-center border-b-2 border-primary pb-1 text-primary'
+          : 'label-md flex h-full items-center text-on-surface-variant transition-colors hover:text-primary'
+      }
+    >
+      {label}
+    </Link>
   );
 }

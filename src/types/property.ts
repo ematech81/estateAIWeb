@@ -75,7 +75,7 @@ export interface CreateListingInput {
 
 export interface Property extends CreateListingInput {
   _id: string;
-  source: 'internal' | 'rentcast';
+  source: 'internal';
   status: PropertyStatus;
   createdBy: string;
   createdAt: string;
@@ -87,7 +87,7 @@ export interface Property extends CreateListingInput {
 // replaced by the one derived boolean the UI actually needs.
 export interface PublicProperty extends CreateListingInput {
   _id: string;
-  source: 'internal' | 'rentcast';
+  source: 'internal';
   status: PropertyStatus;
   agentVerified: boolean;
   createdAt: string;

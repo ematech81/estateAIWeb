@@ -31,6 +31,11 @@ const PROPERTY_TYPES: PropertyType[] = [
 const PRICE_PERIODS: PricePeriod[] = ['yearly', 'monthly', 'one_time', 'nightly'];
 
 type Mode = 'ai' | 'manual';
+// "Local Agent" / "International Agent" — independent of the AI/Manual mode
+// toggle above. It only changes the *defaults* a blank form (or an
+// AI draft missing country/currency) starts with; it never overwrites a
+// value the agent already typed or that the AI actually extracted.
+type Region = 'local' | 'international';
 
 // Editable form state — strings everywhere so empty inputs are representable,
 // converted/validated into CreateListingInput only at submit time. The
@@ -55,35 +60,45 @@ interface FormState {
   amenities: string; // comma-separated in the UI
 }
 
-const BLANK_FORM: FormState = {
-  title: '',
-  description: '',
-  listingType: '',
-  propertyType: '',
-  priceAmount: '',
-  priceCurrency: 'NGN',
-  pricePeriod: '',
-  country: 'Nigeria',
-  state: '',
-  city: '',
-  district: '',
-  address: '',
-  bedrooms: '',
-  bathrooms: '',
-  sizeSqm: '',
-  amenities: '',
-};
+// Region only decides these two defaults — Local assumes Nigeria/NGN (the
+// overwhelming majority case, worth defaulting), International leaves both
+// blank so the agent has to type the real values rather than us silently
+// implying Nigeria for a property that isn't there.
+function regionDefaults(region: Region): { country: string; priceCurrency: string } {
+  return region === 'local' ? { country: 'Nigeria', priceCurrency: 'NGN' } : { country: '', priceCurrency: '' };
+}
 
-function draftToForm(draft: ListingDraft): FormState {
+function blankForm(region: Region): FormState {
+  return {
+    title: '',
+    description: '',
+    listingType: '',
+    propertyType: '',
+    priceAmount: '',
+    ...regionDefaults(region),
+    pricePeriod: '',
+    state: '',
+    city: '',
+    district: '',
+    address: '',
+    bedrooms: '',
+    bathrooms: '',
+    sizeSqm: '',
+    amenities: '',
+  };
+}
+
+function draftToForm(draft: ListingDraft, region: Region): FormState {
+  const defaults = regionDefaults(region);
   return {
     title: draft.title ?? '',
     description: draft.description,
     listingType: draft.listingType ?? '',
     propertyType: draft.propertyType ?? '',
     priceAmount: draft.price.amount?.toString() ?? '',
-    priceCurrency: draft.price.currency ?? 'NGN',
+    priceCurrency: draft.price.currency ?? defaults.priceCurrency,
     pricePeriod: draft.price.period ?? '',
-    country: draft.location.country ?? 'Nigeria',
+    country: draft.location.country ?? defaults.country,
     state: draft.location.state ?? '',
     city: draft.location.city ?? '',
     district: draft.location.district ?? '',
@@ -117,6 +132,7 @@ export default function NewListingPage() {
   const router = useRouter();
   const { isAuthenticated, isLoading } = useAuth();
   const [mode, setMode] = useState<Mode>('ai');
+  const [region, setRegion] = useState<Region>('local');
   const [step, setStep] = useState(1);
   const [rawText, setRawText] = useState('');
   const [form, setForm] = useState<FormState | null>(null);
@@ -137,7 +153,24 @@ export default function NewListingPage() {
     // Manual entry has nowhere to hold the form except the blank form itself
     // — its "step 1" IS the details form. Switching back to AI drops it so
     // the textarea shows again.
-    setForm(next === 'manual' ? { ...BLANK_FORM } : null);
+    setForm(next === 'manual' ? blankForm(region) : null);
+  }
+
+  function selectRegion(next: Region) {
+    setRegion(next);
+    // Re-defaulting an already-open form: only touch country/currency if
+    // they still hold the *other* region's default (i.e. untouched) — a
+    // value the agent actually typed is never clobbered.
+    setForm((prev) => {
+      if (!prev) return prev;
+      const prevDefaults = regionDefaults(next === 'local' ? 'international' : 'local');
+      const nextDefaults = regionDefaults(next);
+      return {
+        ...prev,
+        country: prev.country === prevDefaults.country ? nextDefaults.country : prev.country,
+        priceCurrency: prev.priceCurrency === prevDefaults.priceCurrency ? nextDefaults.priceCurrency : prev.priceCurrency,
+      };
+    });
   }
 
   async function handleGenerateDraft() {
@@ -145,7 +178,7 @@ export default function NewListingPage() {
     setGenerating(true);
     try {
       const { draft } = await api.generateListingDraft(rawText);
-      setForm(draftToForm(draft));
+      setForm(draftToForm(draft, region));
       setStep(2);
     } catch (err) {
       setError(err instanceof ApiClientError ? err.message : 'Could not generate a draft');
@@ -229,10 +262,8 @@ export default function NewListingPage() {
   }
 
   return (
-    <main className="flex min-h-screen flex-col bg-surface">
-      <AgentHeader />
-
-      <div className="flex w-full flex-grow justify-center px-margin-mobile py-stack-lg md:px-gutter">
+    <AgentLayout>
+      <div className="flex w-full justify-center px-margin-mobile py-stack-lg md:px-gutter">
         <div className="flex w-full max-w-3xl flex-col gap-stack-lg">
           <div className="flex flex-col gap-stack-sm text-center">
             <h1 className="headline-lg-mobile md:headline-lg text-trust-blue-900">AI-Assisted Listing</h1>
@@ -247,6 +278,14 @@ export default function NewListingPage() {
           {step === 1 && (
             <div className="flex flex-col gap-stack-md">
               <ModeToggle mode={mode} onChange={selectMode} />
+              <div className="flex flex-col items-center gap-1">
+                <RegionToggle region={region} onChange={selectRegion} />
+                <p className="label-sm text-on-surface-variant">
+                  {region === 'local'
+                    ? "Country and currency default to Nigeria / NGN — change them below if that's wrong."
+                    : "Country and currency start blank — tell us where in the world this property is."}
+                </p>
+              </div>
 
               {mode === 'ai' ? (
                 <div className="card-ai-glow relative flex flex-col gap-stack-md overflow-hidden rounded-xl border border-border-gray-200 bg-surface-container-lowest p-stack-lg shadow-sm">
@@ -330,9 +369,7 @@ export default function NewListingPage() {
           )}
         </div>
       </div>
-
-      <AgentFooter />
-    </main>
+    </AgentLayout>
   );
 }
 
@@ -352,6 +389,27 @@ function ModeToggle({ mode, onChange }: { mode: Mode; onChange: (m: Mode) => voi
         className={mode === 'manual' ? 'btn-primary flex-1 !py-2 text-label-sm' : 'btn-tertiary flex-1 border-0 !py-2 text-label-sm'}
       >
         📝 Manual Entry
+      </button>
+    </div>
+  );
+}
+
+function RegionToggle({ region, onChange }: { region: Region; onChange: (r: Region) => void }) {
+  return (
+    <div className="mx-auto flex w-full max-w-sm gap-2 rounded-lg border border-border-gray-200 bg-surface-container-lowest p-1">
+      <button
+        type="button"
+        onClick={() => onChange('local')}
+        className={region === 'local' ? 'btn-primary flex-1 !py-2 text-label-sm' : 'btn-tertiary flex-1 border-0 !py-2 text-label-sm'}
+      >
+        🇳🇬 Local Agent
+      </button>
+      <button
+        type="button"
+        onClick={() => onChange('international')}
+        className={region === 'international' ? 'btn-primary flex-1 !py-2 text-label-sm' : 'btn-tertiary flex-1 border-0 !py-2 text-label-sm'}
+      >
+        🌍 International Agent
       </button>
     </div>
   );
@@ -440,6 +498,9 @@ function DetailsForm({
       </div>
 
       <div className="grid grid-cols-1 gap-stack-md sm:grid-cols-2">
+        {/* Not Nigeria-only — an agent anywhere can list a property in any
+            country (e.g. a Nigerian agent listing a property in the US). */}
+        <Field label="Country" value={form.country} onChange={(v) => updateField('country', v)} />
         <Field label="City" value={form.city} onChange={(v) => updateField('city', v)} />
         <Field label="Area / District" value={form.district} onChange={(v) => updateField('district', v)} />
         <Field label="State" value={form.state} onChange={(v) => updateField('state', v)} />

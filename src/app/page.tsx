@@ -1,14 +1,15 @@
 'use client';
 
-import { FormEvent, useEffect, useState } from 'react';
+import { FormEvent, ReactNode, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { PageLoader } from '@/components/ui/PageLoader';
 import { LoadingButton } from '@/components/ui/LoadingButton';
-import { ImageCarousel } from '@/components/ui/ImageCarousel';
+import { Pagination } from '@/components/ui/Pagination';
+import { PropertyCard } from '@/components/property/PropertyCard';
 import { api, ApiClientError } from '@/lib/api';
-import type { PublicProperty } from '@/types/property';
+import type { PropertyType, PublicProperty } from '@/types/property';
 
 // Phase 2 consumer search homepage — supersedes the earlier Phase 1
 // agent-recruitment "/" page per an explicit decision to open consumer
@@ -23,41 +24,125 @@ import type { PublicProperty } from '@/types/property';
 // - "Verified Listing" only renders when the listing's agent actually has
 //   verificationStatus "verified" — true for nobody yet, since there's no
 //   verification flow built. Never fabricated.
-// - Filter buttons (Location/Price Range/etc.), Save Search, and Get Alerts
-//   are still inert placeholders — saved searches/alerts aren't built yet.
-//   The card's Details/Contact Agent buttons are real now (property detail
-//   page + lead capture, see app/properties/[id]/page.tsx).
+// - Save Search and Get Alerts are still inert placeholders — no persisted
+//   saved-search model or notification delivery mechanism exists yet.
+// - Price Range/min/max filtering is not currency-aware — it filters the
+//   raw price.amount regardless of currency, which only makes sense given
+//   how differently-scaled NGN and USD listings are. A future improvement,
+//   not hidden.
+// - There's no external data source anymore (a RentCast integration was
+//   built and then deliberately removed) — "international" now just means
+//   a real registered agent listed a real property outside Nigeria through
+//   this same flow, filtered on location.country.
+const PAGE_SIZE = 12;
+const PROPERTY_TYPES: PropertyType[] = [
+  'apartment',
+  'duplex',
+  'bungalow',
+  'terrace',
+  'detached_house',
+  'semi_detached_house',
+  'land',
+  'commercial',
+  'other',
+];
+
+interface SearchOverrides {
+  page?: number;
+  q?: string;
+  international?: boolean;
+  city?: string;
+  propertyType?: PropertyType | '';
+  minPrice?: string;
+  maxPrice?: string;
+}
+
 export default function HomePage() {
   const [query, setQuery] = useState('');
+  // Pill toggle, not a three-way filter — off means "show everything"
+  // (no param sent), not "local only".
+  const [international, setInternational] = useState(false);
+  const [cityFilter, setCityFilter] = useState('');
+  const [propertyTypeFilter, setPropertyTypeFilter] = useState<PropertyType | ''>('');
+  const [minPrice, setMinPrice] = useState('');
+  const [maxPrice, setMaxPrice] = useState('');
+
   const [listings, setListings] = useState<PublicProperty[] | null>(null);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [total, setTotal] = useState(0);
   const [error, setError] = useState<string | null>(null);
   // Separate from `listings === null` (the very first load): tracks a
   // re-search too, so hitting "Search" again with existing results still
   // shows feedback instead of the page appearing to do nothing.
   const [searching, setSearching] = useState(false);
+  const resultsRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
     fetchListings();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  async function fetchListings(q?: string) {
+  // Accepts overrides rather than only reading state, so a click handler
+  // (e.g. switching tabs) can search with the new value immediately instead
+  // of racing the next render — React state updates aren't visible in the
+  // same synchronous callback that set them.
+  async function fetchListings(overrides: SearchOverrides = {}) {
+    const params = {
+      q: overrides.q ?? query,
+      international: overrides.international ?? international,
+      city: overrides.city ?? cityFilter,
+      propertyType: overrides.propertyType ?? propertyTypeFilter,
+      minPrice: overrides.minPrice ?? minPrice,
+      maxPrice: overrides.maxPrice ?? maxPrice,
+      page: overrides.page ?? 1,
+    };
+
     setError(null);
     setSearching(true);
     try {
-      const res = await api.searchListings(q ? { q } : {});
+      const res = await api.searchListings({
+        q: params.q.trim() || undefined,
+        city: params.city.trim() || undefined,
+        // Omitted (not `false`) when off, so it means "show everything"
+        // rather than narrowing to local-only.
+        international: params.international ? true : undefined,
+        propertyType: params.propertyType || undefined,
+        minPrice: params.minPrice ? Number(params.minPrice) : undefined,
+        maxPrice: params.maxPrice ? Number(params.maxPrice) : undefined,
+        page: params.page,
+        limit: PAGE_SIZE,
+      });
       setListings(res.listings);
+      setPage(res.page);
+      setTotalPages(res.totalPages);
+      setTotal(res.total);
     } catch (err) {
       setError(err instanceof ApiClientError ? err.message : 'Could not load listings right now.');
       setListings([]);
+      setTotalPages(1);
+      setTotal(0);
     } finally {
       setSearching(false);
     }
+
+    // Keep state in sync with whatever was actually just searched, so the
+    // UI (filter badges, pagination) reflects reality.
+    setInternational(params.international);
+    setCityFilter(params.city);
+    setPropertyTypeFilter(params.propertyType);
+    setMinPrice(params.minPrice);
+    setMaxPrice(params.maxPrice);
   }
 
   function handleSearch(e: FormEvent) {
     e.preventDefault();
-    fetchListings(query.trim() || undefined);
+    fetchListings({ page: 1 });
+  }
+
+  function handlePageChange(nextPage: number) {
+    fetchListings({ page: nextPage });
+    resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
   return (
@@ -75,23 +160,31 @@ export default function HomePage() {
             and agencies ready to help — starting in Nigeria, expanding worldwide.
           </p>
           <form onSubmit={handleSearch} className="ai-hero-search w-full">
-            <div className="ai-hero-search-inner">
-              <span className="material-symbols-outlined ml-4 text-growth-emerald-500">
+            <div className="ai-hero-search-inner !items-stretch">
+              <span className="material-symbols-outlined absolute left-4 top-4 text-growth-emerald-500">
                 auto_awesome
               </span>
-              <input
+              <textarea
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                type="text"
+                onKeyDown={(e) => {
+                  // Enter submits (matches a single-line search box's
+                  // behavior); Shift+Enter still inserts a newline for
+                  // anyone genuinely typing a multi-line description.
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    fetchListings({ page: 1 });
+                  }
+                }}
                 placeholder="e.g., 3-bedroom apartment in Lekki, ₦5M - ₦8M, with a pool and 24/7 power"
-                className="body-lg w-full border-none bg-transparent py-4 pl-4 pr-32 text-on-surface placeholder:text-outline-variant focus:outline-none focus:ring-0"
+                className="body-lg min-h-[150px] w-full resize-none border-none bg-transparent py-4 pl-11 pr-4 text-on-surface placeholder:text-outline-variant focus:outline-none focus:ring-0"
               />
               <LoadingButton
                 type="submit"
                 loading={searching}
                 loadingText="Searching…"
                 variant="primary"
-                className="absolute right-4 gap-2"
+                className="absolute bottom-4 right-4 gap-2"
               >
                 Search
                 <span className="material-symbols-outlined text-[18px]">search</span>
@@ -100,36 +193,86 @@ export default function HomePage() {
           </form>
         </section>
 
-        {/* Filters — visual only for now; wiring these to real query params
-            is a follow-up once the results below need to be narrowed. */}
+        {/* Filters */}
         <section className="flex w-full flex-col items-center justify-between gap-4 border-b border-border-gray-200 pb-stack-md md:flex-row">
           <div className="flex w-full flex-wrap gap-3 md:w-auto">
-            {['Location', 'Price Range', 'Property Type'].map((label) => (
-              <button
-                key={label}
-                type="button"
-                className="label-md flex items-center gap-2 rounded border border-border-gray-200 bg-surface-container-lowest px-4 py-2 text-on-surface transition-colors hover:border-trust-blue-900"
-              >
-                {label}
-                <span className="material-symbols-outlined text-[18px]">expand_more</span>
-              </button>
-            ))}
+            <FilterDropdown label="Location" active={!!cityFilter} activeLabel={cityFilter}>
+              {(close) => (
+                <ApplyFilterPanel
+                  initialValue={cityFilter}
+                  placeholder="e.g. Lekki, Austin…"
+                  onApply={(value) => {
+                    fetchListings({ city: value, page: 1 });
+                    close();
+                  }}
+                />
+              )}
+            </FilterDropdown>
+
+            <FilterDropdown
+              label="Price Range"
+              active={!!(minPrice || maxPrice)}
+              activeLabel={
+                minPrice || maxPrice
+                  ? `${minPrice || '0'} – ${maxPrice || '∞'}`
+                  : undefined
+              }
+            >
+              {(close) => (
+                <PriceRangePanel
+                  initialMin={minPrice}
+                  initialMax={maxPrice}
+                  onApply={(min, max) => {
+                    fetchListings({ minPrice: min, maxPrice: max, page: 1 });
+                    close();
+                  }}
+                />
+              )}
+            </FilterDropdown>
+
+            <select
+              value={propertyTypeFilter}
+              onChange={(e) => fetchListings({ propertyType: e.target.value as PropertyType | '', page: 1 })}
+              className={
+                propertyTypeFilter
+                  ? 'label-md rounded border border-trust-blue-900 bg-surface-container-low px-4 py-2 text-trust-blue-900'
+                  : 'label-md rounded border border-border-gray-200 bg-surface-container-lowest px-4 py-2 text-on-surface'
+              }
+            >
+              <option value="">Property Type</option>
+              {PROPERTY_TYPES.map((t) => (
+                <option key={t} value={t}>
+                  {t.replace('_', ' ')}
+                </option>
+              ))}
+            </select>
+
             <button
               type="button"
-              className="label-md flex items-center gap-2 rounded border border-border-gray-200 bg-surface-container-lowest px-4 py-2 text-on-surface transition-colors hover:border-trust-blue-900"
+              onClick={() => fetchListings({ international: !international, page: 1 })}
+              className={
+                international
+                  ? 'label-md flex items-center gap-2 rounded border border-trust-blue-900 bg-surface-container-low px-4 py-2 text-trust-blue-900'
+                  : 'label-md flex items-center gap-2 rounded border border-border-gray-200 bg-surface-container-lowest px-4 py-2 text-on-surface transition-colors hover:border-trust-blue-900'
+              }
             >
-              <span className="material-symbols-outlined text-[18px]">tune</span>
-              More Filters
+              <span className="material-symbols-outlined text-[18px]">public</span>
+              International
             </button>
           </div>
           <div className="flex w-full justify-end gap-3 md:w-auto">
-            <button type="button" className="label-md flex items-center gap-2 text-trust-blue-900">
+            <button
+              type="button"
+              title="Save Search — coming soon"
+              className="label-md flex cursor-default items-center gap-2 text-trust-blue-900/50"
+            >
               <span className="material-symbols-outlined text-[18px]">bookmark_add</span>
               Save Search
             </button>
             <button
               type="button"
-              className="label-md flex items-center gap-2 text-growth-emerald-500"
+              title="Get Alerts — coming soon"
+              className="label-md flex cursor-default items-center gap-2 text-growth-emerald-500/50"
             >
               <span className="material-symbols-outlined text-[18px]">notifications_active</span>
               Get Alerts
@@ -138,8 +281,13 @@ export default function HomePage() {
         </section>
 
         {/* Results */}
-        <section className="w-full">
-          <h2 className="headline-md mb-6 text-on-surface">Top Matches for You</h2>
+        <section ref={resultsRef} className="w-full scroll-mt-24">
+          <div className="mb-6 flex items-baseline justify-between">
+            <h2 className="headline-md text-on-surface">Top Matches for You</h2>
+            {!searching && total > 0 && (
+              <span className="label-md text-on-surface-variant">{total.toLocaleString()} properties</span>
+            )}
+          </div>
 
           {(listings === null || searching) && <PageLoader label="Loading properties…" />}
           {error && !searching && <p className="body-md text-error">{error}</p>}
@@ -147,11 +295,14 @@ export default function HomePage() {
           {!searching && listings && listings.length === 0 && <EmptyResults />}
 
           {!searching && listings && listings.length > 0 && (
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {listings.map((listing) => (
-                <PropertyCard key={listing._id} listing={listing} />
-              ))}
-            </div>
+            <>
+              <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+                {listings.map((listing) => (
+                  <PropertyCard key={listing._id} listing={listing} />
+                ))}
+              </div>
+              <Pagination page={page} totalPages={totalPages} onPageChange={handlePageChange} />
+            </>
           )}
         </section>
 
@@ -189,6 +340,107 @@ export default function HomePage() {
   );
 }
 
+// Small popover filter — click the button to reveal `children`, which
+// receives a `close` callback to call once its own "Apply" fires.
+function FilterDropdown({
+  label,
+  active,
+  activeLabel,
+  children,
+}: {
+  label: string;
+  active: boolean;
+  activeLabel?: string;
+  children: (close: () => void) => ReactNode;
+}) {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <div className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        className={
+          active
+            ? 'label-md flex items-center gap-2 rounded border border-trust-blue-900 bg-surface-container-low px-4 py-2 text-trust-blue-900'
+            : 'label-md flex items-center gap-2 rounded border border-border-gray-200 bg-surface-container-lowest px-4 py-2 text-on-surface transition-colors hover:border-trust-blue-900'
+        }
+      >
+        {active && activeLabel ? `${label}: ${activeLabel}` : label}
+        <span className="material-symbols-outlined text-[18px]">expand_more</span>
+      </button>
+      {open && (
+        <div className="absolute left-0 top-full z-20 mt-2 w-64 rounded-lg border border-border-gray-200 bg-surface-container-lowest p-4 shadow-lg">
+          {children(() => setOpen(false))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ApplyFilterPanel({
+  initialValue,
+  placeholder,
+  onApply,
+}: {
+  initialValue: string;
+  placeholder: string;
+  onApply: (value: string) => void;
+}) {
+  const [value, setValue] = useState(initialValue);
+  return (
+    <div className="flex flex-col gap-stack-sm">
+      <input
+        value={value}
+        onChange={(e) => setValue(e.target.value)}
+        placeholder={placeholder}
+        className="input-standard"
+        autoFocus
+      />
+      <button type="button" onClick={() => onApply(value)} className="btn-primary !py-2">
+        Apply
+      </button>
+    </div>
+  );
+}
+
+function PriceRangePanel({
+  initialMin,
+  initialMax,
+  onApply,
+}: {
+  initialMin: string;
+  initialMax: string;
+  onApply: (min: string, max: string) => void;
+}) {
+  const [min, setMin] = useState(initialMin);
+  const [max, setMax] = useState(initialMax);
+  return (
+    <div className="flex flex-col gap-stack-sm">
+      <input
+        type="number"
+        min={0}
+        value={min}
+        onChange={(e) => setMin(e.target.value)}
+        placeholder="Min"
+        className="input-standard"
+        autoFocus
+      />
+      <input
+        type="number"
+        min={0}
+        value={max}
+        onChange={(e) => setMax(e.target.value)}
+        placeholder="Max"
+        className="input-standard"
+      />
+      <button type="button" onClick={() => onApply(min, max)} className="btn-primary !py-2">
+        Apply
+      </button>
+    </div>
+  );
+}
+
 function EmptyResults() {
   return (
     <div className="elevation-1 rounded-lg p-10 text-center">
@@ -200,60 +452,3 @@ function EmptyResults() {
   );
 }
 
-function PropertyCard({ listing }: { listing: PublicProperty }) {
-  const specs: string[] = [];
-  if (listing.specifications.bedrooms != null) specs.push(`${listing.specifications.bedrooms} Beds`);
-  if (listing.specifications.bathrooms != null) specs.push(`${listing.specifications.bathrooms} Baths`);
-  if (listing.specifications.sizeSqm != null) specs.push(`${listing.specifications.sizeSqm} sqm`);
-
-  return (
-    <article className="card-property group flex flex-col">
-      <div className="relative">
-        <ImageCarousel images={listing.media} alt={listing.title} className="aspect-video w-full" />
-        {listing.agentVerified && (
-          <div className="absolute left-3 top-3 z-10 flex items-center gap-1 rounded-full border border-growth-emerald-500 bg-surface-container-lowest/90 px-3 py-1 backdrop-blur-sm">
-            <span className="material-symbols-outlined text-[16px] text-growth-emerald-500">
-              verified
-            </span>
-            <span className="label-sm text-trust-blue-900">Verified Listing</span>
-          </div>
-        )}
-      </div>
-
-      <div className="flex flex-grow flex-col p-5">
-        <h3 className="mb-2 text-[20px] font-bold text-trust-blue-900">
-          {listing.price.currency} {listing.price.amount.toLocaleString()}{' '}
-          <span className="label-sm font-normal text-on-surface-variant">
-            / {listing.price.period.replace('_', ' ')}
-          </span>
-        </h3>
-        <p className="label-md mb-1 font-semibold text-on-surface">{listing.title}</p>
-        <p className="label-sm mb-4 flex items-center gap-1 text-on-surface-variant">
-          <span className="material-symbols-outlined text-[16px]">location_on</span>
-          {listing.location.city}
-          {listing.location.district ? `, ${listing.location.district}` : ''}
-        </p>
-
-        {specs.length > 0 && (
-          <div className="label-sm mb-5 flex flex-wrap items-center gap-4 border-t border-border-gray-200 pt-3 text-on-surface-variant">
-            {specs.map((spec) => (
-              <span key={spec}>{spec}</span>
-            ))}
-          </div>
-        )}
-
-        <div className="mt-auto flex gap-2">
-          <Link
-            href={`/properties/${listing._id}`}
-            className="flex-1 rounded border border-border-gray-200 bg-surface-gray-50 py-2 text-center text-label-md text-on-surface transition-colors hover:bg-surface-container-high"
-          >
-            Details
-          </Link>
-          <Link href={`/properties/${listing._id}`} className="btn-secondary flex-1">
-            Contact Agent
-          </Link>
-        </div>
-      </div>
-    </article>
-  );
-}

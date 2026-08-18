@@ -1,5 +1,5 @@
 import { getToken } from './auth';
-import type { CreateListingInput, ListingDraft, Property, PublicProperty } from '@/types/property';
+import type { CreateListingInput, ListingDraft, Property, PropertyType, PublicProperty } from '@/types/property';
 import type { Lead, LeadStatus } from '@/types/lead';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/api';
@@ -50,6 +50,20 @@ export interface AuthResponse {
   user: UserProfile;
 }
 
+// Public agent-directory shape — deliberately no email/phone (matches the
+// backend's toPublicAgent(); contact goes through a listing's lead form,
+// not a public directory).
+export interface PublicAgent {
+  id: string;
+  name: string;
+  role: string;
+  businessName?: string;
+  primaryLocation?: string;
+  verificationStatus: 'unverified' | 'pending' | 'verified';
+  createdAt: string;
+  activeListingCount: number;
+}
+
 export const api = {
   register: (input: {
     email: string;
@@ -73,13 +87,33 @@ export const api = {
   getMyListings: () => request<{ listings: Property[] }>('/listings/mine'),
 
   // Public — basic text/city matching, not AI-ranked (see listing.service.ts).
-  searchListings: (params: { q?: string; city?: string; limit?: number } = {}) => {
+  searchListings: (
+    params: {
+      q?: string;
+      city?: string;
+      limit?: number;
+      page?: number;
+      international?: boolean;
+      propertyType?: PropertyType;
+      minPrice?: number;
+      maxPrice?: number;
+      agentId?: string;
+    } = {},
+  ) => {
     const query = new URLSearchParams();
     if (params.q) query.set('q', params.q);
     if (params.city) query.set('city', params.city);
     if (params.limit) query.set('limit', String(params.limit));
+    if (params.page) query.set('page', String(params.page));
+    if (params.international != null) query.set('international', String(params.international));
+    if (params.propertyType) query.set('propertyType', params.propertyType);
+    if (params.minPrice != null) query.set('minPrice', String(params.minPrice));
+    if (params.maxPrice != null) query.set('maxPrice', String(params.maxPrice));
+    if (params.agentId) query.set('agentId', params.agentId);
     const qs = query.toString();
-    return request<{ listings: PublicProperty[] }>(`/listings${qs ? `?${qs}` : ''}`);
+    return request<{ listings: PublicProperty[]; total: number; page: number; limit: number; totalPages: number }>(
+      `/listings${qs ? `?${qs}` : ''}`,
+    );
   },
 
   // Public — same visibility rule as search (pending_review/active only).
@@ -89,6 +123,23 @@ export const api = {
 
   updateProfile: (input: { name?: string; phone?: string; businessName?: string; primaryLocation?: string }) =>
     request<{ user: UserProfile }>('/users/me', { method: 'PATCH', body: JSON.stringify(input) }),
+
+  changePassword: (input: { currentPassword: string; newPassword: string }) =>
+    request<{ message: string }>('/users/me/password', { method: 'PATCH', body: JSON.stringify(input) }),
+
+  // 204 No Content — nothing to parse, but request() always calls
+  // res.json() first; that .catch(() => ({})) fallback in request() makes
+  // an empty body safe to await here too.
+  deleteAccount: () => request<Record<string, never>>('/users/me', { method: 'DELETE' }),
+
+  // Real numbers we already store — no view/click tracking exists, so none
+  // are reported (see api/src/modules/analytics/analytics.service.ts).
+  getMyAnalytics: () =>
+    request<{
+      listingsByStatus: Record<string, number>;
+      leadsByStatus: Record<string, number>;
+      listingsByMonth: { month: string; count: number }[];
+    }>('/analytics/mine'),
 
   // Public — a seeker contacting an agent isn't necessarily registered.
   submitLead: (propertyId: string, input: { name: string; email: string; phone?: string; message?: string }) =>
@@ -104,4 +155,17 @@ export const api = {
       '/uploads/signature',
       { method: 'POST' },
     ),
+
+  // Public — the Header's "Agents" directory.
+  getAgents: (params: { page?: number; limit?: number } = {}) => {
+    const query = new URLSearchParams();
+    if (params.page) query.set('page', String(params.page));
+    if (params.limit) query.set('limit', String(params.limit));
+    const qs = query.toString();
+    return request<{ agents: PublicAgent[]; total: number; page: number; limit: number; totalPages: number }>(
+      `/users/agents${qs ? `?${qs}` : ''}`,
+    );
+  },
+
+  getAgent: (id: string) => request<{ agent: PublicAgent }>(`/users/agents/${id}`),
 };
