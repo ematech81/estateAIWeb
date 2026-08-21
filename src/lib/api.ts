@@ -79,6 +79,18 @@ export const api = {
   login: (input: { email: string; password: string }) =>
     request<AuthResponse>('/auth/login', { method: 'POST', body: JSON.stringify(input) }),
 
+  // Always resolves with the same generic message, whether or not the
+  // email is actually registered — the backend deliberately doesn't
+  // distinguish, so this never gives the UI anything to leak either.
+  forgotPassword: (email: string) =>
+    request<{ message: string }>('/auth/forgot-password', { method: 'POST', body: JSON.stringify({ email }) }),
+
+  resetPassword: (token: string, newPassword: string) =>
+    request<{ message: string }>('/auth/reset-password', {
+      method: 'POST',
+      body: JSON.stringify({ token, newPassword }),
+    }),
+
   generateListingDraft: (text: string) =>
     request<{ draft: ListingDraft }>('/listings/draft', { method: 'POST', body: JSON.stringify({ text }) }),
 
@@ -86,6 +98,9 @@ export const api = {
     request<{ listing: Property }>('/listings', { method: 'POST', body: JSON.stringify(input) }),
 
   getMyListings: () => request<{ listings: Property[] }>('/listings/mine'),
+
+  updateListing: (id: string, input: Partial<CreateListingInput>) =>
+    request<{ listing: Property }>(`/listings/${id}`, { method: 'PATCH', body: JSON.stringify(input) }),
 
   // Public — basic text/city matching, not AI-ranked (see listing.service.ts).
   searchListings: (

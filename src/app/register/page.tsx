@@ -30,8 +30,16 @@ export default function RegisterPage() {
   const router = useRouter();
   const { isAuthenticated, isLoading, login } = useAuth();
 
+  // Guards against an already-authenticated visitor landing on /register
+  // directly. Deliberately targets the same place as handleSubmit's own
+  // post-registration redirect below (both '/') rather than dashboard: the
+  // two fire in the same tick right after a fresh registration (login()
+  // flips isAuthenticated, which re-renders and triggers this effect,
+  // racing the explicit push in handleSubmit) — mismatched targets meant
+  // this one silently won and dashboard, not home, is exactly what
+  // shouldn't happen after registering.
   useEffect(() => {
-    if (!isLoading && isAuthenticated) router.push('/agent/dashboard');
+    if (!isLoading && isAuthenticated) router.push('/');
   }, [isLoading, isAuthenticated, router]);
 
   const [role, setRole] = useState<Role>('agent');

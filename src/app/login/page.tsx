@@ -14,8 +14,12 @@ export default function LoginPage() {
   const router = useRouter();
   const { isAuthenticated, isLoading, login } = useAuth();
 
+  // Targets the same place as handleSubmit's own post-login redirect below
+  // (both '/') — matches the fix on /register: this effect and the explicit
+  // push both fire in the same tick right after login() flips
+  // isAuthenticated, and mismatched targets meant this one silently won.
   useEffect(() => {
-    if (!isLoading && isAuthenticated) router.push('/agent/dashboard');
+    if (!isLoading && isAuthenticated) router.push('/');
   }, [isLoading, isAuthenticated, router]);
 
   const [email, setEmail] = useState('');
@@ -35,7 +39,7 @@ export default function LoginPage() {
       // survives closing the browser, sessionStorage clears when the tab
       // does — a real behavioral difference, not just a cosmetic checkbox.
       login(token, rememberMe);
-      router.push('/agent/dashboard');
+      router.push('/');
     } catch (err) {
       setError(err instanceof ApiClientError ? err.message : 'Login failed');
     } finally {
@@ -124,12 +128,9 @@ export default function LoginPage() {
                 <label htmlFor="password" className="label-md text-on-surface">
                   Password
                 </label>
-                <span
-                  className="label-md cursor-default text-on-surface-variant/50"
-                  title="Coming soon"
-                >
+                <Link href="/forgot-password" className="label-md text-secondary hover:underline">
                   Forgot password?
-                </span>
+                </Link>
               </div>
               <div className="relative">
                 <span className="material-symbols-outlined pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant">

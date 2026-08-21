@@ -183,13 +183,13 @@ function ListingCard({ listing }: { listing: Property }) {
           <span className="label-sm text-on-surface-variant">
             {listing.location.city} · {new Date(listing.createdAt).toLocaleDateString()}
           </span>
-          <button
-            type="button"
-            title="Edit listing — coming soon"
-            className="cursor-default rounded p-1 text-on-surface-variant/50"
+          <Link
+            href={`/agent/listings/${listing._id}/edit`}
+            title="Edit listing"
+            className="rounded p-1 text-on-surface-variant transition-colors hover:bg-surface-container-high hover:text-trust-blue-900"
           >
             <span className="material-symbols-outlined">edit</span>
-          </button>
+          </Link>
         </div>
       </div>
     </div>
