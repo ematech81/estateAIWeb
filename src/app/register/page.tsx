@@ -60,7 +60,7 @@ export default function RegisterPage() {
         primaryLocation: primaryLocation || undefined,
       });
       login(token);
-      router.push('/agent/dashboard');
+      router.push('/');
     } catch (err) {
       setError(err instanceof ApiClientError ? err.message : 'Registration failed. Please try again.');
     } finally {
@@ -71,11 +71,16 @@ export default function RegisterPage() {
   return (
     <main className="flex min-h-screen flex-col bg-surface-gray-50">
       <section className="relative flex min-h-screen w-full items-center justify-center overflow-hidden bg-trust-blue-900 px-margin-mobile py-stack-lg pt-24 text-on-primary md:px-gutter">
-        {/* Placeholder background treatment — swap for a real hero photo
-            (via the eventual Cloudinary pipeline, Section 7) once available.
-            The source design referenced a Google AI-Studio mockup asset
-            (aida-public bucket) that isn't safe to ship as-is. */}
-        <div className="absolute inset-0 z-0 bg-gradient-to-br from-trust-blue-900 via-[#16233b] to-black" />
+        {/* Real hero photo — served from public/images/, not Cloudinary (it's
+            a static brand asset, not agent-uploaded content). The dark
+            gradient on top is still needed even over a photo: it's what
+            keeps the white heading text legible regardless of what's
+            underneath. */}
+        <div
+          className="absolute inset-0 z-0 bg-cover bg-center"
+          style={{ backgroundImage: "url('/images/hero-skyline-night.jpg')" }}
+        />
+        <div className="absolute inset-0 z-0 bg-gradient-to-br from-trust-blue-900/90 via-trust-blue-900/60 to-black/80" />
         <div className="absolute -right-24 -top-24 z-0 h-96 w-96 rounded-full bg-growth-emerald-500/10 blur-3xl" />
         <div className="absolute -bottom-32 -left-24 z-0 h-96 w-96 rounded-full bg-premium-gold/5 blur-3xl" />
 

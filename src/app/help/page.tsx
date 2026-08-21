@@ -18,8 +18,12 @@ const FAQS: { question: string; answer: string }[] = [
   },
   {
     question: 'What does the "Verified Listing" badge mean?',
+    answer: 'It means the listing agent\'s identity/business was verified by us.',
+  },
+  {
+    question: 'What does the "International" tag on a listing mean?',
     answer:
-      'It means the listing agent\'s identity/business was verified by us. It never appears on properties from our licensed international data partner (RentCast) — those instead show a "via RentCast" tag, since that\'s a different kind of trust than an agent we\'ve personally verified.',
+      'It\'s a real property outside Nigeria, listed by a real registered agent through the same flow as any other listing — not a separate data source. When listing, an agent can switch to "International Agent" mode so we don\'t default the country/currency to Nigeria/NGN.',
   },
   {
     question: 'Why can\'t I see an agent\'s phone number or email in the directory?',
@@ -29,7 +33,7 @@ const FAQS: { question: string; answer: string }[] = [
   {
     question: 'Is my data safe?',
     answer:
-      'We only display data from your own listings or from RentCast, a licensed real estate data provider — never scraped from other sites. See our Privacy Policy for details on what we collect and how it\'s used.',
+      'We only display data from listings agents and agencies submit through EstateAI — never scraped from other sites. See our Privacy Policy for details on what we collect and how it\'s used.',
   },
 ];
 

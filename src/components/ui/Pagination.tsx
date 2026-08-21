@@ -1,3 +1,5 @@
+import { getPageNumbers } from '@/lib/pagination';
+
 // Shared by the homepage search grid and the agent-detail page's "their
 // listings" grid.
 export function Pagination({
@@ -58,21 +60,4 @@ export function Pagination({
       </button>
     </nav>
   );
-}
-
-// Compact page list with ellipses once there are enough pages to need them,
-// e.g. [1, 'ellipsis', 9, 10, 11, 'ellipsis', 20].
-function getPageNumbers(current: number, total: number): (number | 'ellipsis')[] {
-  const delta = 1; // pages shown on each side of current
-  const range: (number | 'ellipsis')[] = [];
-  const left = Math.max(2, current - delta);
-  const right = Math.min(total - 1, current + delta);
-
-  range.push(1);
-  if (left > 2) range.push('ellipsis');
-  for (let i = left; i <= right; i++) range.push(i);
-  if (right < total - 1) range.push('ellipsis');
-  if (total > 1) range.push(total);
-
-  return range;
 }

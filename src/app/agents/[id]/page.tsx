@@ -6,6 +6,7 @@ import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { PageLoader } from '@/components/ui/PageLoader';
 import { Pagination } from '@/components/ui/Pagination';
+import { Breadcrumb } from '@/components/ui/Breadcrumb';
 import { PropertyCard } from '@/components/property/PropertyCard';
 import { api, ApiClientError } from '@/lib/api';
 import type { PublicAgent } from '@/lib/api';
@@ -64,6 +65,8 @@ export default function AgentDetailPage() {
       <Header />
 
       <main className="container-app flex-grow py-stack-lg">
+        <Breadcrumb items={[{ label: 'Agents', href: '/agents' }, ...(agent ? [{ label: agent.name }] : [])]} />
+
         {!agent && !notFound && !error && <PageLoader label="Loading agent…" />}
 
         {notFound && (

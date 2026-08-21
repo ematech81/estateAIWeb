@@ -140,7 +140,7 @@ export function AgentSidebar() {
               <button
                 type="button"
                 onClick={handleLogout}
-                className="flex w-full items-center gap-3 rounded-xl px-4 py-2 text-on-surface-variant transition-all hover:bg-surface-container-high"
+                className="flex w-full items-center gap-3 rounded-xl px-4 py-2 text-error transition-all hover:bg-error/10"
               >
                 <span className="material-symbols-outlined">logout</span>
                 <span className="label-md">Log out</span>

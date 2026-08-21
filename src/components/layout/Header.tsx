@@ -5,7 +5,7 @@ import { usePathname } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 
 export function Header() {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const pathname = usePathname();
 
   return (
@@ -24,22 +24,23 @@ export function Header() {
         <nav className="hidden h-full items-center gap-8 md:flex">
           <NavLink href="/" label="Discover" active={pathname === '/'} />
           <NavLink href="/agents" label="Agents" active={pathname?.startsWith('/agents') ?? false} />
-          {/* Not wired to a real page yet — see the blog-feature scoping
-              discussion before building it out. Same "honest placeholder"
-              convention used elsewhere (sidebar's Analytics/Messages before
-              they were real). */}
-          <span
-            title="Blog — coming soon"
-            className="label-md flex h-full cursor-default items-center text-on-surface-variant/50"
-          >
-            Blog
-          </span>
+          <NavLink href="/blog" label="Blog" active={pathname?.startsWith('/blog') ?? false} />
           <NavLink href="/help" label="Help" active={pathname?.startsWith('/help') ?? false} />
         </nav>
 
         <div className="flex items-center gap-4">
           {isAuthenticated ? (
             <>
+              {/* Only the admin account (see api/scripts/promoteToAdmin.ts)
+                  ever sees this — it's how they reach the authoring UI. */}
+              {user?.role === 'admin' && (
+                <Link
+                  href="/admin/blog"
+                  className="label-md hidden text-primary transition-opacity hover:opacity-80 md:block"
+                >
+                  Admin
+                </Link>
+              )}
               {/* Logout lives on the dashboard now (and in AgentSidebar
                   throughout the agent area) — this marketing header no
                   longer duplicates it. Dashboard/Add-a-listing swap the

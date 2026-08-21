@@ -6,8 +6,14 @@ import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { PageLoader } from '@/components/ui/PageLoader';
 import { LoadingButton } from '@/components/ui/LoadingButton';
+import { Breadcrumb } from '@/components/ui/Breadcrumb';
 import { api, ApiClientError } from '@/lib/api';
 import type { PublicProperty } from '@/types/property';
+
+// Truncated so a long listing title doesn't blow out the breadcrumb row.
+function truncate(text: string, max: number): string {
+  return text.length > max ? `${text.slice(0, max - 1)}…` : text;
+}
 
 export default function PropertyDetailPage() {
   const params = useParams<{ id: string }>();
@@ -40,6 +46,13 @@ export default function PropertyDetailPage() {
       <Header />
 
       <main className="container-app flex-grow py-stack-lg">
+        <Breadcrumb
+          items={[
+            { label: 'Discover', href: '/' },
+            ...(listing ? [{ label: truncate(listing.title, 60) }] : []),
+          ]}
+        />
+
         {!listing && !notFound && !error && <PageLoader label="Loading property…" />}
 
         {notFound && (

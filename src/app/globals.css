@@ -2,6 +2,18 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer utilities {
+  /* Hides the scrollbar on a horizontally-scrolling row (e.g. the blog's
+     filter tabs on mobile) while keeping it scrollable. */
+  .hide-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .hide-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}
+
 /* Material Symbols font is loaded via a <link> tag in layout.tsx; this
    keyframe backs the hero AI search bar's animated gradient border below. */
 @keyframes ai-gradient-move {
@@ -123,7 +135,8 @@
   .badge-action {
     @apply badge bg-trust-blue-900 text-inverse-on-surface;
   }
-  /* International: neutral slate tag (property source, e.g. "via RentCast"). */
+  /* International: neutral slate tag for a listing outside Nigeria
+     (location.country !== 'Nigeria' — see components/property/PropertyCard.tsx). */
   .badge-international {
     @apply badge bg-surface-container text-on-surface-variant;
   }
@@ -184,5 +197,62 @@
   }
   .card-ai-glow:focus-within {
     box-shadow: 0 0 30px rgb(16 185 129 / 0.3);
+  }
+
+  /* ---- Blog post body ---- */
+  /* Hand-written rather than pulling in @tailwindcss/typography (not an
+     installed dependency) — react-markdown's raw <h1>/<p>/<ul>/etc. output
+     needs *some* styling since Tailwind's preflight strips all browser
+     defaults; this uses the app's own tokens so a post reads like the rest
+     of EstateAI instead of a generic plugin's look. */
+  .markdown-body {
+    @apply text-body-md text-on-surface;
+  }
+  .markdown-body h1,
+  .markdown-body h2,
+  .markdown-body h3 {
+    @apply mb-4 mt-8 font-bold text-trust-blue-900;
+  }
+  .markdown-body h1 {
+    @apply text-headline-md;
+  }
+  .markdown-body h2 {
+    @apply text-body-lg;
+  }
+  .markdown-body h3 {
+    @apply text-body-md;
+  }
+  .markdown-body p {
+    @apply mb-4 leading-relaxed;
+  }
+  .markdown-body ul {
+    @apply mb-4 list-disc space-y-1 pl-6;
+  }
+  .markdown-body ol {
+    @apply mb-4 list-decimal space-y-1 pl-6;
+  }
+  .markdown-body a {
+    @apply text-trust-blue-900 underline underline-offset-2 hover:text-growth-emerald-500;
+  }
+  .markdown-body blockquote {
+    @apply my-8 rounded-r-lg border-l-4 border-growth-emerald-500 bg-surface-gray-50 p-6 text-body-lg italic text-trust-blue-900 shadow-sm;
+  }
+  .markdown-body blockquote p {
+    @apply mb-0;
+  }
+  .markdown-body code {
+    @apply rounded bg-surface-container-low px-1.5 py-0.5 text-label-sm;
+  }
+  .markdown-body pre {
+    @apply mb-4 overflow-x-auto rounded-lg bg-surface-container-low p-4;
+  }
+  .markdown-body pre code {
+    @apply bg-transparent p-0;
+  }
+  .markdown-body img {
+    @apply my-4 rounded-lg;
+  }
+  .markdown-body hr {
+    @apply my-8 border-border-gray-200;
   }
 }

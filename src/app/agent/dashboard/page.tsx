@@ -56,15 +56,22 @@ export default function AgentDashboardPage() {
               Here is the overview of your real estate portfolio.
             </p>
           </div>
-          {/* Moved here from the public marketing Header, which no longer
-              duplicates it (AgentSidebar still has its own Log out control
-              too — this one's for a quick, explicit, always-visible exit
-              right from the dashboard itself). */}
+          {/* Logout was moved here from the public marketing Header, which no
+              longer duplicates it (AgentSidebar still has its own Log out
+              control too — this one's for a quick, explicit, always-visible
+              exit right from the dashboard itself). Red because it's the
+              one genuinely destructive-feeling action in this row. */}
           <div className="flex items-center gap-4">
+            <Link
+              href="/"
+              className="label-md text-on-surface-variant transition-colors hover:text-primary"
+            >
+              Go to home
+            </Link>
             <button
               type="button"
               onClick={handleLogout}
-              className="label-md text-on-surface-variant transition-colors hover:text-primary"
+              className="label-md text-error transition-colors hover:opacity-80"
             >
               Logout
             </button>

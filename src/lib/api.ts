@@ -1,6 +1,7 @@
 import { getToken } from './auth';
 import type { CreateListingInput, ListingDraft, Property, PropertyType, PublicProperty } from '@/types/property';
 import type { Lead, LeadStatus } from '@/types/lead';
+import type { AdminBlogPost, BlogPostInput } from '@/types/blog';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/api';
 
@@ -168,4 +169,20 @@ export const api = {
   },
 
   getAgent: (id: string) => request<{ agent: PublicAgent }>(`/users/agents/${id}`),
+
+  // Admin-only — the public blog reads (list/by-slug) go through
+  // lib/publicBlogApi.ts instead, since those run in Server Components
+  // where this request() helper's localStorage-backed token lookup isn't
+  // available.
+  listAllBlogPosts: () => request<{ posts: AdminBlogPost[] }>('/blog-admin'),
+
+  getBlogPostAdmin: (id: string) => request<{ post: AdminBlogPost }>(`/blog-admin/${id}`),
+
+  createBlogPost: (input: BlogPostInput) =>
+    request<{ post: AdminBlogPost }>('/blog-admin', { method: 'POST', body: JSON.stringify(input) }),
+
+  updateBlogPost: (id: string, input: Partial<BlogPostInput>) =>
+    request<{ post: AdminBlogPost }>(`/blog-admin/${id}`, { method: 'PATCH', body: JSON.stringify(input) }),
+
+  deleteBlogPost: (id: string) => request<Record<string, never>>(`/blog-admin/${id}`, { method: 'DELETE' }),
 };

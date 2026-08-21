@@ -45,11 +45,15 @@ export default function LoginPage() {
 
   return (
     <main className="flex min-h-screen w-full flex-col md:flex-row">
-      {/* Left: branding panel — placeholder gradient rather than the source
-          design's Google AI-Studio mockup asset (aida-public bucket), same
-          call as /register's hero. Swap for a real photo later. */}
+      {/* Left: branding panel — real hero photo (public/images/), same
+          treatment as /register's hero: a dark gradient over the photo
+          keeps the white heading text legible. */}
       <div className="relative hidden flex-col items-center justify-center overflow-hidden md:flex md:w-1/2">
-        <div className="absolute inset-0 z-0 bg-gradient-to-br from-trust-blue-900 via-[#16233b] to-black" />
+        <div
+          className="absolute inset-0 z-0 bg-cover bg-center"
+          style={{ backgroundImage: "url('/images/hero-towers-day.jpg')" }}
+        />
+        <div className="absolute inset-0 z-0 bg-gradient-to-br from-trust-blue-900/90 via-trust-blue-900/70 to-black/85" />
         <div className="absolute -right-24 -top-24 z-0 h-96 w-96 rounded-full bg-growth-emerald-500/10 blur-3xl" />
         <div className="absolute -bottom-32 -left-24 z-0 h-96 w-96 rounded-full bg-premium-gold/5 blur-3xl" />
 
