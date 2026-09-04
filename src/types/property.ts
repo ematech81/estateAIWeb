@@ -90,6 +90,13 @@ export interface PublicProperty extends CreateListingInput {
   source: 'internal';
   status: PropertyStatus;
   agentVerified: boolean;
+  // True when the listing owner's effective plan is Basic or Premium —
+  // makes the "priority on search results" feature visible, not just an
+  // invisible sort order.
+  featured: boolean;
+  // Server-side only in practice (drives the detail page's robots meta
+  // tag), but present on every response for consistency.
+  googleIndexable: boolean;
   createdAt: string;
   updatedAt: string;
 }

@@ -9,6 +9,7 @@ import { profileCompletionPercent } from '@/lib/profileCompletion';
 import { AgentLayout } from '@/components/layout/AgentLayout';
 import { PageLoader } from '@/components/ui/PageLoader';
 import { MetricCard } from '@/components/ui/MetricCard';
+import { EmailVerificationBanner } from '@/components/agent/EmailVerificationBanner';
 import type { Property } from '@/types/property';
 
 export default function AgentDashboardPage() {
@@ -47,6 +48,8 @@ export default function AgentDashboardPage() {
   return (
     <AgentLayout>
       <div className="mx-auto max-w-container-max space-y-stack-lg px-margin-mobile py-stack-lg md:px-gutter">
+        {user && !user.emailVerified && <EmailVerificationBanner />}
+
         <div className="flex flex-col items-start justify-between gap-4 md:flex-row md:items-end">
           <div>
             <h2 className="headline-lg-mobile md:headline-lg font-bold text-primary">

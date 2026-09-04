@@ -26,6 +26,7 @@ const NAV_ITEMS = [
 const SECONDARY_ITEMS = [
   { href: '/agent/analytics', label: 'Analytics', icon: 'analytics', match: 'analytics' as const },
   { href: '/agent/leads', label: 'Messages', icon: 'chat', match: undefined },
+  { href: '/agent/upgrade', label: 'Upgrade', icon: 'workspace_premium', match: 'upgrade' as const },
 ];
 
 function useActiveSection() {
@@ -36,6 +37,7 @@ function useActiveSection() {
   if (pathname?.startsWith('/agent/leads')) return 'leads';
   if (pathname?.startsWith('/agent/analytics')) return 'analytics';
   if (pathname?.startsWith('/agent/settings')) return 'settings';
+  if (pathname?.startsWith('/agent/upgrade')) return 'upgrade';
   return null;
 }
 

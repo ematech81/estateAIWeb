@@ -22,6 +22,7 @@ export default function AgentSettingsPage() {
       <div className="container-app max-w-xl py-12">
         <h1 className="headline-lg-mobile md:headline-lg mb-stack-lg text-trust-blue-900">Settings</h1>
         <div className="flex flex-col gap-stack-lg">
+          <EmailPreferencesSection />
           <PasswordSection />
           <DangerZone
             onDeleted={() => {
@@ -32,6 +33,54 @@ export default function AgentSettingsPage() {
         </div>
       </div>
     </AgentLayout>
+  );
+}
+
+function EmailPreferencesSection() {
+  const { user, setUser } = useAuth();
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function handleToggle(checked: boolean) {
+    setError(null);
+    setSaving(true);
+    try {
+      const res = await api.updateProfile({ emailMarketingOptIn: checked });
+      setUser(res.user);
+    } catch (err) {
+      setError(err instanceof ApiClientError ? err.message : 'Could not save your preference.');
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  if (!user) return null;
+
+  return (
+    <section className="elevation-1 flex flex-col gap-stack-md rounded-lg p-6">
+      <div>
+        <h2 className="headline-md font-bold text-on-surface">Email preferences</h2>
+        <p className="body-md mt-1 text-on-surface-variant">Control what EstateAI emails you about.</p>
+      </div>
+
+      <label className="flex items-start gap-3">
+        <input
+          type="checkbox"
+          checked={user.emailMarketingOptIn}
+          disabled={saving}
+          onChange={(e) => handleToggle(e.target.checked)}
+          className="mt-1 h-4 w-4 rounded-sm border-border-gray-200 text-trust-blue-900 focus:ring-trust-blue-900"
+        />
+        <span className="body-md text-on-surface">
+          Email me when a new property is listed on EstateAI.
+          <span className="label-sm mt-1 block text-on-surface-variant">
+            Off by default. You can turn this off again at any time.
+          </span>
+        </span>
+      </label>
+
+      {error && <p className="body-md text-error">{error}</p>}
+    </section>
   );
 }
 

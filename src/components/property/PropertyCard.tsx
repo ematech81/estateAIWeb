@@ -14,12 +14,20 @@ export function PropertyCard({ listing }: { listing: PublicProperty }) {
     <article className="card-property group flex flex-col">
       <div className="relative">
         <ImageCarousel images={listing.media} alt={listing.title} className="aspect-video w-full" />
-        {listing.agentVerified && (
-          <div className="absolute left-3 top-3 z-10 flex items-center gap-1 rounded-full border border-growth-emerald-500 bg-surface-container-lowest/90 px-3 py-1 backdrop-blur-sm">
-            <span className="material-symbols-outlined text-[16px] text-growth-emerald-500">verified</span>
-            <span className="label-sm text-trust-blue-900">Verified Listing</span>
-          </div>
-        )}
+        <div className="absolute left-3 top-3 z-10 flex flex-col items-start gap-1.5">
+          {listing.agentVerified && (
+            <div className="flex items-center gap-1 rounded-full border border-growth-emerald-500 bg-surface-container-lowest/90 px-3 py-1 backdrop-blur-sm">
+              <span className="material-symbols-outlined text-[16px] text-growth-emerald-500">verified</span>
+              <span className="label-sm text-trust-blue-900">Verified Listing</span>
+            </div>
+          )}
+          {listing.featured && (
+            <div className="flex items-center gap-1 rounded-full border border-tertiary-container bg-surface-container-lowest/90 px-3 py-1 backdrop-blur-sm">
+              <span className="material-symbols-outlined text-[16px] text-tertiary-container">star</span>
+              <span className="label-sm text-trust-blue-900">Promoted</span>
+            </div>
+          )}
+        </div>
         {listing.location.country !== 'Nigeria' && (
           <div className="badge-international absolute right-3 top-3 z-10 backdrop-blur-sm">
             <span className="material-symbols-outlined text-[16px]">public</span>

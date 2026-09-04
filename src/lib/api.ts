@@ -43,6 +43,17 @@ export interface UserProfile {
   businessName?: string;
   primaryLocation?: string;
   verificationStatus: 'unverified' | 'pending' | 'verified';
+  // Confirms the agent owns the email they registered with — separate
+  // from verificationStatus above (agent-identity/KYC-style, still
+  // foundation-only). This one has a real flow: see /verify-email.
+  emailVerified: boolean;
+  // The *effective* tier — the backend already lazily reverts an expired
+  // paid plan to 'free' for display, so this never shows a stale "Premium"
+  // for a lapsed pass.
+  planTier: 'free' | 'basic' | 'premium';
+  planExpiresAt?: string;
+  // Recipient-side opt-in for the "new listing" email — see Settings.
+  emailMarketingOptIn: boolean;
   createdAt: string;
 }
 
@@ -91,6 +102,12 @@ export const api = {
       body: JSON.stringify({ token, newPassword }),
     }),
 
+  verifyEmail: (token: string) =>
+    request<{ message: string }>('/auth/verify-email', { method: 'POST', body: JSON.stringify({ token }) }),
+
+  resendVerification: () =>
+    request<{ message: string; alreadyVerified: boolean }>('/auth/resend-verification', { method: 'POST' }),
+
   generateListingDraft: (text: string) =>
     request<{ draft: ListingDraft }>('/listings/draft', { method: 'POST', body: JSON.stringify({ text }) }),
 
@@ -137,8 +154,13 @@ export const api = {
 
   getMe: () => request<{ user: UserProfile }>('/users/me'),
 
-  updateProfile: (input: { name?: string; phone?: string; businessName?: string; primaryLocation?: string }) =>
-    request<{ user: UserProfile }>('/users/me', { method: 'PATCH', body: JSON.stringify(input) }),
+  updateProfile: (input: {
+    name?: string;
+    phone?: string;
+    businessName?: string;
+    primaryLocation?: string;
+    emailMarketingOptIn?: boolean;
+  }) => request<{ user: UserProfile }>('/users/me', { method: 'PATCH', body: JSON.stringify(input) }),
 
   changePassword: (input: { currentPassword: string; newPassword: string }) =>
     request<{ message: string }>('/users/me/password', { method: 'PATCH', body: JSON.stringify(input) }),
@@ -150,6 +172,9 @@ export const api = {
 
   // Real numbers we already store — no view/click tracking exists, so none
   // are reported (see api/src/modules/analytics/analytics.service.ts).
+  initiateCheckout: (plan: 'basic' | 'premium') =>
+    request<{ checkoutUrl: string }>('/payments/checkout', { method: 'POST', body: JSON.stringify({ plan }) }),
+
   getMyAnalytics: () =>
     request<{
       listingsByStatus: Record<string, number>;

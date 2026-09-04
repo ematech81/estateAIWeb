@@ -60,9 +60,9 @@ export default function HelpPage() {
             <p className="body-md mb-stack-md text-on-surface-variant">
               Email us and we&apos;ll get back to you.
             </p>
-            <a href="mailto:support@estateai.com" className="btn-primary inline-flex">
+            <a href="mailto:info@techsphereapp.com" className="btn-primary inline-flex">
               <span className="material-symbols-outlined text-[18px]">mail</span>
-              support@estateai.com
+              info@techsphereapp.com
             </a>
           </div>
 

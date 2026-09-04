@@ -1,7 +1,15 @@
 import Link from 'next/link';
 
-// Nav links (Terms/Privacy/Help/etc.) don't have pages yet — inert
-// placeholders, same as Header's nav. Swap in real hrefs as they're built.
+const FOOTER_LINKS = [
+  { label: 'Terms of Service', href: '/terms' },
+  { label: 'Privacy Policy', href: '/privacy' },
+  { label: 'Refund Policy', href: '/refund-policy' },
+  // Already a real, built page — this was just never pointed at it (the
+  // AgentSidebar's equivalent link was fixed earlier; this public footer
+  // one was missed at the time).
+  { label: 'Help Center', href: '/help' },
+];
+
 export function Footer() {
   return (
     <footer className="mt-auto w-full border-t border-border-gray-200 bg-surface-gray-50">
@@ -17,13 +25,14 @@ export function Footer() {
         </Link>
 
         <nav className="flex flex-wrap justify-center gap-x-6 gap-y-2">
-          {['Terms of Service', 'Privacy Policy', 'Help Center'].map((label) => (
-            <span
-              key={label}
-              className="label-md cursor-default text-on-surface-variant transition-colors hover:text-secondary"
+          {FOOTER_LINKS.map((link) => (
+            <Link
+              key={link.label}
+              href={link.href}
+              className="label-md text-on-surface-variant transition-colors hover:text-secondary"
             >
-              {label}
-            </span>
+              {link.label}
+            </Link>
           ))}
         </nav>
 
