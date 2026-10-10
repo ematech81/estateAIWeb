@@ -28,7 +28,7 @@ const FAQS: { question: string; answer: string }[] = [
   {
     question: 'Why can\'t I see an agent\'s phone number or email in the directory?',
     answer:
-      'To protect agents from spam and scraping, the public agent directory only shows their name, business, and location. To reach an agent, use the "Contact Agent" form on one of their listings — your message goes directly to them.',
+      'To protect agents from spam and scraping, the public agent directory only shows their name, business, and location. To reach an agent, open one of their listings and click "Contact the Agent" — after a short notice, you\'ll see their name, phone number and email so you can reach them directly.',
   },
   {
     question: 'Is my data safe?',

@@ -4,7 +4,7 @@ import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { Breadcrumb } from '@/components/ui/Breadcrumb';
 import { PropertyGallery } from '@/components/property/PropertyGallery';
-import { ContactAgentForm } from '@/components/property/ContactAgentForm';
+import { ContactAgentButton } from '@/components/property/ContactAgentButton';
 import { getPublishedListingById } from '@/lib/publicPropertyApi';
 import type { PublicProperty } from '@/types/property';
 
@@ -115,7 +115,7 @@ export default async function PropertyDetailPage({ params }: { params: Params })
           </div>
 
           <div className="lg:col-span-1">
-            <ContactAgentForm propertyId={listing._id} />
+            <ContactAgentButton propertyId={listing._id} />
           </div>
         </div>
       </main>

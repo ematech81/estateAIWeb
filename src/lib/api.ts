@@ -63,7 +63,7 @@ export interface AuthResponse {
 }
 
 // Public agent-directory shape — deliberately no email/phone (matches the
-// backend's toPublicAgent(); contact goes through a listing's lead form,
+// backend's toPublicAgent(); contact details are only revealed by a listing's "Contact the Agent" flow,
 // not a public directory).
 export interface PublicAgent {
   id: string;
@@ -151,6 +151,13 @@ export const api = {
 
   // Public — same visibility rule as search (pending_review/active only).
   getListing: (id: string) => request<{ listing: PublicProperty }>(`/listings/${id}`),
+
+  // Public — fetched only after the seeker accepts the platform disclaimer,
+  // so agent email/phone aren't part of the regular listing payload.
+  getListingContact: (id: string) =>
+    request<{ contact: { name: string; email: string; phone?: string; businessName?: string } }>(
+      `/listings/${id}/contact`,
+    ),
 
   getMe: () => request<{ user: UserProfile }>('/users/me'),
 
