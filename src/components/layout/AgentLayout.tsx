@@ -1,5 +1,6 @@
 import { ReactNode } from 'react';
 import { AgentSidebar } from './AgentSidebar';
+import { UpgradeBanner } from '@/components/agent/UpgradeBanner';
 
 // Wraps every authenticated agent page (dashboard, listing wizard, leads,
 // profile) with the persistent sidebar/mobile-nav shell and the matching
@@ -18,7 +19,10 @@ export function AgentLayout({ children }: { children: ReactNode }) {
   return (
     <div className="flex min-h-screen flex-col bg-surface">
       <AgentSidebar />
-      <main className="flex-1 pb-20 md:ml-64 md:pb-0">{children}</main>
+      <main className="flex-1 pb-20 md:ml-64 md:pb-0">
+        <UpgradeBanner />
+        {children}
+      </main>
     </div>
   );
 }
