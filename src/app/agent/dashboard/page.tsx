@@ -10,6 +10,7 @@ import { AgentLayout } from '@/components/layout/AgentLayout';
 import { PageLoader } from '@/components/ui/PageLoader';
 import { MetricCard } from '@/components/ui/MetricCard';
 import { EmailVerificationBanner } from '@/components/agent/EmailVerificationBanner';
+import { ListingAvailabilityButton } from '@/components/agent/ListingAvailabilityButton';
 import type { Property } from '@/types/property';
 
 export default function AgentDashboardPage() {
@@ -138,7 +139,13 @@ export default function AgentDashboardPage() {
           {listings && listings.length > 0 && (
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-gutter lg:grid-cols-3">
               {listings.map((listing) => (
-                <ListingCard key={listing._id} listing={listing} />
+                <ListingCard
+                  key={listing._id}
+                  listing={listing}
+                  onChange={(updated) =>
+                    setListings((prev) => prev?.map((l) => (l._id === updated._id ? updated : l)) ?? prev)
+                  }
+                />
               ))}
             </div>
           )}
@@ -152,16 +159,24 @@ const STATUS_META: Record<Property['status'], { label: string; icon: string; cla
   active: { label: 'Live', icon: 'fiber_manual_record', className: 'text-growth-emerald-500' },
   pending_review: { label: 'Pending', icon: 'schedule', className: 'text-tertiary-container' },
   draft: { label: 'Draft', icon: 'edit_document', className: 'text-on-surface-variant' },
-  inactive: { label: 'Inactive', icon: 'visibility_off', className: 'text-error' },
+  inactive: { label: 'Unavailable', icon: 'visibility_off', className: 'text-error' },
 };
 
-function ListingCard({ listing }: { listing: Property }) {
-  const status = STATUS_META[listing.status];
+// An unavailable listing is labelled by *why* (Sold / Rented / Unavailable)
+// rather than a generic "Inactive".
+const UNAVAILABLE_LABEL = { sold: 'Sold', rented: 'Rented', withdrawn: 'Unavailable' } as const;
+
+function ListingCard({ listing, onChange }: { listing: Property; onChange: (updated: Property) => void }) {
+  const base = STATUS_META[listing.status];
+  const status =
+    listing.status === 'inactive'
+      ? { ...base, label: UNAVAILABLE_LABEL[listing.unavailableReason ?? 'withdrawn'] }
+      : base;
   const photo = listing.media[0];
 
   return (
     <div className="group overflow-hidden rounded-xl border border-border-gray-200 bg-surface-container-lowest transition-shadow duration-300 hover:shadow-lg">
-      <div className="relative aspect-video bg-surface-gray-50">
+      <div className={`relative aspect-video bg-surface-gray-50 ${listing.status === 'inactive' ? 'opacity-60' : ''}`}>
         {photo ? (
           // eslint-disable-next-line @next/next/no-img-element -- agent-uploaded photos, not from a next/image-configured domain
           <img src={photo} alt={listing.title} className="h-full w-full object-cover" />
@@ -186,13 +201,16 @@ function ListingCard({ listing }: { listing: Property }) {
           <span className="label-sm text-on-surface-variant">
             {listing.location.city} · {new Date(listing.createdAt).toLocaleDateString()}
           </span>
-          <Link
-            href={`/agent/listings/${listing._id}/edit`}
-            title="Edit listing"
-            className="rounded p-1 text-on-surface-variant transition-colors hover:bg-surface-container-high hover:text-trust-blue-900"
-          >
-            <span className="material-symbols-outlined">edit</span>
-          </Link>
+          <div className="flex items-center gap-3">
+            <ListingAvailabilityButton listing={listing} onChange={onChange} />
+            <Link
+              href={`/agent/listings/${listing._id}/edit`}
+              title="Edit listing"
+              className="rounded p-1 text-on-surface-variant transition-colors hover:bg-surface-container-high hover:text-trust-blue-900"
+            >
+              <span className="material-symbols-outlined">edit</span>
+            </Link>
+          </div>
         </div>
       </div>
     </div>

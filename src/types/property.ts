@@ -16,6 +16,8 @@ export type PropertyType =
   | 'other';
 export type PricePeriod = 'yearly' | 'monthly' | 'one_time' | 'nightly';
 export type PropertyStatus = 'draft' | 'pending_review' | 'active' | 'inactive';
+// Why an 'inactive' listing was taken off the market.
+export type UnavailableReason = 'sold' | 'rented' | 'withdrawn';
 
 export interface PropertyPrice {
   amount: number;
@@ -77,6 +79,8 @@ export interface Property extends CreateListingInput {
   _id: string;
   source: 'internal';
   status: PropertyStatus;
+  unavailableReason?: UnavailableReason;
+  unavailableAt?: string;
   createdBy: string;
   createdAt: string;
   updatedAt: string;

@@ -130,7 +130,11 @@ export default function AgentPerformancePage() {
                             </Link>
                             <p className="label-sm text-on-surface-variant">
                               {l.city}
-                              {l.status !== 'active' ? ` · ${l.status.replace('_', ' ')}` : ''}
+                              {l.status === 'inactive'
+                                ? ` · ${l.unavailableReason === 'sold' ? 'sold' : l.unavailableReason === 'rented' ? 'rented' : 'unavailable'}`
+                                : l.status !== 'active'
+                                  ? ` · ${l.status.replace('_', ' ')}`
+                                  : ''}
                             </p>
                           </td>
                           <td className="body-md px-2 py-3 text-right font-bold text-on-surface">{l.views}</td>

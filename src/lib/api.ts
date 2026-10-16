@@ -1,5 +1,12 @@
 import { getToken } from './auth';
-import type { CreateListingInput, ListingDraft, Property, PropertyType, PublicProperty } from '@/types/property';
+import type {
+  CreateListingInput,
+  ListingDraft,
+  Property,
+  PropertyType,
+  PublicProperty,
+  UnavailableReason,
+} from '@/types/property';
 import { getVisitorId } from './visitor';
 import type { AdminBlogPost, BlogPostInput } from '@/types/blog';
 
@@ -81,6 +88,7 @@ export interface ListingPerformance {
   title: string;
   city: string;
   status: string;
+  unavailableReason?: 'sold' | 'rented' | 'withdrawn';
   views: number;
   uniqueVisitors: number;
   contactClicks: number;
@@ -136,6 +144,11 @@ export const api = {
 
   updateListing: (id: string, input: Partial<CreateListingInput>) =>
     request<{ listing: Property }>(`/listings/${id}`, { method: 'PATCH', body: JSON.stringify(input) }),
+
+  // Take a listing off the market (hidden from the public, kept in the
+  // agent's dashboard) or put it back.
+  setListingAvailability: (id: string, input: { available: true } | { available: false; reason: UnavailableReason }) =>
+    request<{ listing: Property }>(`/listings/${id}/availability`, { method: 'PATCH', body: JSON.stringify(input) }),
 
   // Public — basic text/city matching, not AI-ranked (see listing.service.ts).
   searchListings: (

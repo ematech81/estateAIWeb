@@ -22,7 +22,7 @@ const LISTING_STATUS_META: Record<PropertyStatus, { label: string; dotClassName:
   draft: { label: 'Draft', dotClassName: 'bg-on-surface-variant/50' },
   pending_review: { label: 'Pending review', dotClassName: 'bg-tertiary-container' },
   active: { label: 'Active', dotClassName: 'bg-growth-emerald-500' },
-  inactive: { label: 'Inactive', dotClassName: 'bg-error' },
+  inactive: { label: 'Unavailable (sold / rented / withdrawn)', dotClassName: 'bg-error' },
 };
 const LISTING_STATUS_ORDER: PropertyStatus[] = ['draft', 'pending_review', 'active', 'inactive'];
 
