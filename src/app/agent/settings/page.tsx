@@ -173,7 +173,7 @@ function DangerZone({ onDeleted }: { onDeleted: () => void }) {
       <div>
         <h2 className="headline-md font-bold text-error">Delete account</h2>
         <p className="body-md mt-1 text-on-surface-variant">
-          This permanently deletes your account, all of your listings, and all of your leads. This
+          This permanently deletes your account, all of your listings, and your listing performance data. This
           cannot be undone.
         </p>
       </div>

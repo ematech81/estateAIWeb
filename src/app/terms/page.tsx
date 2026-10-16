@@ -21,7 +21,7 @@ EstateAI is **not** a licensed real estate broker, agent, appraiser, or financia
 - You agree to provide accurate, current information when registering and to keep it up to date.
 - You are responsible for maintaining the confidentiality of your password and for all activity under your account.
 - Seekers do not need an account to browse listings or contact an Agent through a listing's contact form; an account is required to create and manage listings.
-- You may delete your account at any time from your account settings. Deleting your account permanently removes your account, your listings, and any leads associated with your listings — this cannot be undone.
+- You may delete your account at any time from your account settings. Deleting your account permanently removes your account, your listings, and the performance statistics for your listings — this cannot be undone.
 
 ## 3. Listings
 
@@ -39,7 +39,7 @@ You agree not to:
 
 - Post false, fraudulent, or misleading listings, or impersonate another person or business.
 - Scrape, harvest, or bulk-extract data from the Service.
-- Use contact information obtained through the Service (including leads submitted through a listing's contact form) for unsolicited marketing or any purpose other than responding to that specific inquiry.
+- Use contact information obtained through the Service (including contact details revealed through a listing) for unsolicited marketing or any purpose other than responding to that specific inquiry.
 - Attempt to interfere with, disrupt, or gain unauthorized access to the Service or its underlying systems.
 - Use the Service for any unlawful purpose.
 

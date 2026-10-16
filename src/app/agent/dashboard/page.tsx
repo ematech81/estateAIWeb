@@ -16,7 +16,7 @@ export default function AgentDashboardPage() {
   const router = useRouter();
   const { isAuthenticated, isLoading, user, logout } = useAuth();
   const [listings, setListings] = useState<Property[] | null>(null);
-  const [leadCount, setLeadCount] = useState<number | null>(null);
+  const [viewCount, setViewCount] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -29,11 +29,11 @@ export default function AgentDashboardPage() {
       .getMyListings()
       .then((res) => setListings(res.listings))
       .catch(() => setError('Could not load your listings. Please try logging in again.'));
-    // Leads failing shouldn't block the rest of the dashboard from
+    // Performance failing shouldn't block the rest of the dashboard from
     // rendering — the metric just stays blank rather than erroring the page.
     api
-      .getMyLeads()
-      .then((res) => setLeadCount(res.leads.length))
+      .getMyPerformance(30)
+      .then((res) => setViewCount(res.totals.views))
       .catch(() => {});
   }, [isLoading, isAuthenticated, router]);
 
@@ -90,11 +90,11 @@ export default function AgentDashboardPage() {
 
         {/* Metrics — real numbers only. The reference design's trend badges
             ("+12%") and view/like counts aren't backed by anything we track
-            (no historical snapshots, no view/favorite system), so they're
-            left out rather than shown as fake data. */}
+            (no historical snapshots), so they're left out rather than shown as
+            fake data. Views are real, counted visitor activity. */}
         <div className="grid grid-cols-1 gap-4 md:grid-cols-3 md:gap-gutter">
           <MetricCard icon="real_estate_agent" label="Active Listings" value={activeCount} />
-          <MetricCard icon="group" label="Total Leads" value={leadCount} />
+          <MetricCard icon="visibility" label="Views (30 days)" value={viewCount} />
 
           <div className="relative flex flex-col justify-between overflow-hidden rounded-xl bg-trust-blue-900 p-6 text-white">
             <div className="absolute -right-4 -top-4 opacity-10">

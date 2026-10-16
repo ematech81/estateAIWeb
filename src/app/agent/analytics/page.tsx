@@ -9,17 +9,15 @@ import { PageLoader } from '@/components/ui/PageLoader';
 import { MetricCard } from '@/components/ui/MetricCard';
 import { ListingsOverTimeChart } from '@/components/analytics/ListingsOverTimeChart';
 import type { PropertyStatus } from '@/types/property';
-import type { LeadStatus } from '@/types/lead';
 
 interface Analytics {
   listingsByStatus: Record<string, number>;
-  leadsByStatus: Record<string, number>;
   listingsByMonth: { month: string; count: number }[];
 }
 
-// Every number on this page is derived from Property/Lead documents the
-// agent already owns (api/src/modules/analytics/) — no view/click tracking
-// exists anywhere in the app, so no such metric is shown here either.
+// Listing-inventory numbers, derived from Property documents the agent
+// already owns. Visitor activity (views, contact clicks) lives on the
+// Performance page.
 const LISTING_STATUS_META: Record<PropertyStatus, { label: string; dotClassName: string }> = {
   draft: { label: 'Draft', dotClassName: 'bg-on-surface-variant/50' },
   pending_review: { label: 'Pending review', dotClassName: 'bg-tertiary-container' },
@@ -27,13 +25,6 @@ const LISTING_STATUS_META: Record<PropertyStatus, { label: string; dotClassName:
   inactive: { label: 'Inactive', dotClassName: 'bg-error' },
 };
 const LISTING_STATUS_ORDER: PropertyStatus[] = ['draft', 'pending_review', 'active', 'inactive'];
-
-const LEAD_STATUS_META: Record<LeadStatus, { label: string; dotClassName: string }> = {
-  new: { label: 'New', dotClassName: 'bg-trust-blue-900' },
-  contacted: { label: 'Contacted', dotClassName: 'bg-tertiary-container' },
-  closed: { label: 'Closed', dotClassName: 'bg-growth-emerald-500' },
-};
-const LEAD_STATUS_ORDER: LeadStatus[] = ['new', 'contacted', 'closed'];
 
 export default function AgentAnalyticsPage() {
   const router = useRouter();
@@ -55,8 +46,6 @@ export default function AgentAnalyticsPage() {
 
   const totalListings = data ? Object.values(data.listingsByStatus).reduce((a, b) => a + b, 0) : null;
   const activeListings = data ? data.listingsByStatus.active ?? 0 : null;
-  const totalLeads = data ? Object.values(data.leadsByStatus).reduce((a, b) => a + b, 0) : null;
-  const newLeads = data ? data.leadsByStatus.new ?? 0 : null;
 
   return (
     <AgentLayout>
@@ -64,7 +53,7 @@ export default function AgentAnalyticsPage() {
         <div>
           <h1 className="headline-lg-mobile md:headline-lg font-bold text-primary">Analytics</h1>
           <p className="body-md mt-1 text-on-surface-variant">
-            A real-time snapshot of your listings and leads — nothing here is estimated.
+            A real-time snapshot of your listings — nothing here is estimated.
           </p>
         </div>
 
@@ -73,27 +62,17 @@ export default function AgentAnalyticsPage() {
 
         {data && (
           <>
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-4 md:gap-gutter">
+            <div className="grid grid-cols-2 gap-4 md:gap-gutter">
               <MetricCard icon="real_estate_agent" label="Total Listings" value={totalListings} />
               <MetricCard icon="fiber_manual_record" label="Active Listings" value={activeListings} />
-              <MetricCard icon="group" label="Total Leads" value={totalLeads} />
-              <MetricCard icon="mark_email_unread" label="New Leads" value={newLeads} />
             </div>
 
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-gutter">
-              <StatusBreakdown
-                title="Listings by status"
-                order={LISTING_STATUS_ORDER}
-                meta={LISTING_STATUS_META}
-                counts={data.listingsByStatus}
-              />
-              <StatusBreakdown
-                title="Leads by status"
-                order={LEAD_STATUS_ORDER}
-                meta={LEAD_STATUS_META}
-                counts={data.leadsByStatus}
-              />
-            </div>
+            <StatusBreakdown
+              title="Listings by status"
+              order={LISTING_STATUS_ORDER}
+              meta={LISTING_STATUS_META}
+              counts={data.listingsByStatus}
+            />
 
             <div className="rounded-xl border border-border-gray-200 bg-surface-container-lowest p-6">
               <h2 className="headline-md mb-1 font-bold text-on-surface">Listings created over time</h2>

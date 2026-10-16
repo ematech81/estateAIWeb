@@ -4,6 +4,7 @@ import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { Breadcrumb } from '@/components/ui/Breadcrumb';
 import { PropertyGallery } from '@/components/property/PropertyGallery';
+import { PropertyViewTracker } from '@/components/property/PropertyViewTracker';
 import { ContactAgentButton } from '@/components/property/ContactAgentButton';
 import { getPublishedListingById } from '@/lib/publicPropertyApi';
 import type { PublicProperty } from '@/types/property';
@@ -53,6 +54,7 @@ export default async function PropertyDetailPage({ params }: { params: Params })
   return (
     <div className="flex min-h-screen flex-col bg-background">
       <Header />
+      <PropertyViewTracker propertyId={listing._id} />
 
       <main className="container-app flex-grow py-stack-lg">
         <Breadcrumb items={[{ label: 'Discover', href: '/' }, { label: truncate(listing.title, 60) }]} />

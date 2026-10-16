@@ -14,18 +14,13 @@ const NAV_ITEMS = [
   { href: '/agent/dashboard', label: 'Dashboard', icon: 'dashboard', match: 'dashboard' as const },
   { href: '/agent/dashboard', label: 'Listings', icon: 'list_alt', match: 'listings' as const },
   { href: '/agent/profile', label: 'Profile', icon: 'person', match: 'profile' as const },
-  { href: '/agent/leads', label: 'Leads', icon: 'group', match: 'leads' as const },
+  { href: '/agent/performance', label: 'Performance', icon: 'insights', match: 'performance' as const },
 ];
 
-// Desktop-only secondary items — real pages now, but there's no room for
-// them in the mobile bottom tab bar's 4 slots (NAV_ITEMS above already
-// fills it). Messages deliberately has no `match`: it links to the same
-// /agent/leads page as "Leads" above (no second messaging system — see
-// the milestone plan), so it should never fight that nav item for the
-// active highlight.
+// Desktop-only secondary items — real pages, but there's no room for them
+// in the mobile bottom tab bar's 4 slots (NAV_ITEMS above already fills it).
 const SECONDARY_ITEMS = [
   { href: '/agent/analytics', label: 'Analytics', icon: 'analytics', match: 'analytics' as const },
-  { href: '/agent/leads', label: 'Messages', icon: 'chat', match: undefined },
   { href: '/agent/upgrade', label: 'Upgrade', icon: 'workspace_premium', match: 'upgrade' as const },
 ];
 
@@ -34,7 +29,7 @@ function useActiveSection() {
   if (pathname?.startsWith('/agent/listings')) return 'listings';
   if (pathname?.startsWith('/agent/dashboard')) return 'dashboard';
   if (pathname?.startsWith('/agent/profile')) return 'profile';
-  if (pathname?.startsWith('/agent/leads')) return 'leads';
+  if (pathname?.startsWith('/agent/performance')) return 'performance';
   if (pathname?.startsWith('/agent/analytics')) return 'analytics';
   if (pathname?.startsWith('/agent/settings')) return 'settings';
   if (pathname?.startsWith('/agent/upgrade')) return 'upgrade';

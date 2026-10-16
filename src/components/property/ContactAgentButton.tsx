@@ -59,7 +59,14 @@ export function ContactAgentButton({ propertyId }: { propertyId: string }) {
       <div className="elevation-1 flex flex-col gap-stack-sm rounded-xl p-stack-lg">
         <h2 className="headline-md text-on-surface">Interested in this property?</h2>
         <p className="body-md text-on-surface-variant">Get in touch with the agent directly to ask questions or arrange a viewing.</p>
-        <button type="button" onClick={() => setStep('disclaimer')} className="btn-secondary mt-1">
+        <button
+          type="button"
+          onClick={() => {
+            setStep('disclaimer');
+            api.trackEvent(propertyId, 'contact_click');
+          }}
+          className="btn-secondary mt-1"
+        >
           Contact the Agent
         </button>
       </div>

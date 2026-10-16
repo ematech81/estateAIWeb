@@ -1,6 +1,6 @@
 import { getToken } from './auth';
 import type { CreateListingInput, ListingDraft, Property, PropertyType, PublicProperty } from '@/types/property';
-import type { Lead, LeadStatus } from '@/types/lead';
+import { getVisitorId } from './visitor';
 import type { AdminBlogPost, BlogPostInput } from '@/types/blog';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/api';
@@ -74,6 +74,24 @@ export interface PublicAgent {
   verificationStatus: 'unverified' | 'pending' | 'verified';
   createdAt: string;
   activeListingCount: number;
+}
+
+export interface ListingPerformance {
+  id: string;
+  title: string;
+  city: string;
+  status: string;
+  views: number;
+  uniqueVisitors: number;
+  contactClicks: number;
+  contactReveals: number;
+}
+
+export interface PerformanceReport {
+  days: number;
+  totals: { views: number; uniqueVisitors: number; contactClicks: number; contactReveals: number };
+  daily: { date: string; views: number }[];
+  listings: ListingPerformance[];
 }
 
 export const api = {
@@ -154,9 +172,11 @@ export const api = {
 
   // Public — fetched only after the seeker accepts the platform disclaimer,
   // so agent email/phone aren't part of the regular listing payload.
+  // A POST because revealing the details is itself a tracked action.
   getListingContact: (id: string) =>
     request<{ contact: { name: string; email: string; phone?: string; businessName?: string } }>(
       `/listings/${id}/contact`,
+      { method: 'POST', body: JSON.stringify({ visitorId: getVisitorId() }) },
     ),
 
   getMe: () => request<{ user: UserProfile }>('/users/me'),
@@ -185,18 +205,25 @@ export const api = {
   getMyAnalytics: () =>
     request<{
       listingsByStatus: Record<string, number>;
-      leadsByStatus: Record<string, number>;
       listingsByMonth: { month: string; count: number }[];
     }>('/analytics/mine'),
 
-  // Public — a seeker contacting an agent isn't necessarily registered.
-  submitLead: (propertyId: string, input: { name: string; email: string; phone?: string; message?: string }) =>
-    request<{ lead: Lead }>('/leads', { method: 'POST', body: JSON.stringify({ propertyId, ...input }) }),
+  // Public, fire-and-forget — records a view / "Contact the Agent" click for
+  // the listing's performance stats. Never throws: tracking must not break
+  // the page. `keepalive` lets it finish even if the visitor navigates away.
+  trackEvent: async (propertyId: string, type: 'view' | 'contact_click'): Promise<void> => {
+    try {
+      await request('/events', {
+        method: 'POST',
+        keepalive: true,
+        body: JSON.stringify({ propertyId, type, visitorId: getVisitorId() }),
+      });
+    } catch {
+      // ignore
+    }
+  },
 
-  getMyLeads: () => request<{ leads: Lead[] }>('/leads/mine'),
-
-  updateLeadStatus: (id: string, status: LeadStatus) =>
-    request<{ lead: Lead }>(`/leads/${id}`, { method: 'PATCH', body: JSON.stringify({ status }) }),
+  getMyPerformance: (days: 7 | 30 | 90 = 30) => request<PerformanceReport>(`/analytics/performance?days=${days}`),
 
   getUploadSignature: () =>
     request<{ timestamp: number; signature: string; apiKey: string; cloudName: string; folder: string }>(

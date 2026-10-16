@@ -15,7 +15,7 @@ This Privacy Policy explains what personal information EstateAI ("we," "us," or 
 
 **Listing information.** If you create a listing, we store the property details you provide (title, description, price, location, specifications, amenities) and any photos you upload.
 
-**Lead information.** If you (as a Seeker) contact an Agent through a listing's contact form, we collect the name, email, phone number (if provided), and message you submit, and share it directly with that listing's Agent so they can respond to you.
+**Listing activity.** If you browse listings as a Seeker, you don't need an account and we don't collect your name or contact details. We record when a listing's page is opened, when "Contact the Agent" is clicked, and when an Agent's contact details are shown. These are tied to a random anonymous identifier stored in your browser (not to you personally) and are used to show Agents how their listings are performing. Agents' name, email, and phone number are shown to Seekers who choose to view them.
 
 **What we do not collect.** We do not run third-party advertising trackers, ad pixels, or general-purpose analytics scripts. We do not sell your personal information to anyone.
 
@@ -43,7 +43,7 @@ We do not use tracking cookies. To keep you signed in, we store your session tok
 ## 5. Your Choices and Rights
 
 - **Access and update.** You can view and update your profile information at any time from your account settings.
-- **Delete your account.** You can permanently delete your account from your account settings. This immediately and permanently removes your account, your listings, and any leads associated with your listings. This action cannot be undone.
+- **Delete your account.** You can permanently delete your account from your account settings. This immediately and permanently removes your account, your listings, and the performance statistics for your listings. This action cannot be undone.
 - **Change your password.** Available from your account settings, or via the "forgot password" flow if you're signed out.
 
 ## 6. Data Security

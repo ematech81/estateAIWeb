@@ -156,8 +156,8 @@ export default function HomePage() {
             Find Your Perfect Property with AI
           </h1>
           <p className="body-lg mb-10 max-w-2xl text-on-surface-variant">
-            Tell us exactly what you&apos;re looking for, and our AI will match you with agents
-            and agencies ready to help — starting in Nigeria, expanding worldwide.
+            Search listings from property owners, agents and agencies, then contact them
+            directly — starting in Nigeria, expanding worldwide.
           </p>
           <form onSubmit={handleSearch} className="ai-hero-search w-full">
             <div className="ai-hero-search-inner !items-stretch">
