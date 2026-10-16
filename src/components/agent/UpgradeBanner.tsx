@@ -28,7 +28,7 @@ export function UpgradeBanner() {
       </div>
       <Link
         href="/agent/upgrade"
-        className="label-md shrink-0 whitespace-nowrap rounded-lg bg-trust-blue-900 px-4 py-2 text-white transition-opacity hover:opacity-90"
+        className="label-md shrink-0 whitespace-nowrap rounded-lg bg-error px-4 py-2 font-bold text-on-error transition-opacity hover:opacity-90"
       >
         Upgrade
       </Link>

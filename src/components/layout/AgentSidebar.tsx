@@ -17,16 +17,12 @@ const NAV_ITEMS = [
   { href: '/agent/performance', label: 'Performance', icon: 'insights', match: 'performance' as const },
 ];
 
-// Desktop sidebar's secondary items. On mobile only Upgrade from this list
-// gets a tab (see MOBILE_TAB_ITEMS below); Analytics has no mobile slot.
+// Desktop-only secondary items — real pages, but there's no room for them
+// in the mobile bottom tab bar's 4 slots (NAV_ITEMS above already fills it).
 const SECONDARY_ITEMS = [
   { href: '/agent/analytics', label: 'Analytics', icon: 'analytics', match: 'analytics' as const },
   { href: '/agent/upgrade', label: 'Upgrade', icon: 'workspace_premium', match: 'upgrade' as const },
 ];
-
-// Upgrade gets a slot in the mobile bar too — it's the only way to reach the
-// plans/checkout page on a phone (and to renew a time-limited paid plan).
-const MOBILE_TAB_ITEMS = [...NAV_ITEMS, SECONDARY_ITEMS.find((i) => i.match === 'upgrade')!];
 
 function useActiveSection() {
   const pathname = usePathname();
@@ -169,18 +165,18 @@ export function AgentSidebar() {
         </div>
       </header>
 
-      {/* Mobile bottom tabs — NAV_ITEMS plus Upgrade. Analytics is a real
-          page too but has no slot here; it's reachable via the desktop
-          sidebar or a direct link. */}
+      {/* Mobile bottom tabs — NAV_ITEMS only; a 4-slot bar has no room for
+          SECONDARY_ITEMS. On mobile, Upgrade is reached via the banner
+          (UpgradeBanner); Analytics via a direct link. */}
       <nav className="fixed bottom-0 z-50 flex h-16 w-full items-center justify-around border-t border-border-gray-200 bg-surface-container-lowest md:hidden">
-        {MOBILE_TAB_ITEMS.map((item) => (
+        {NAV_ITEMS.map((item) => (
           <Link
             key={item.label}
             href={item.href}
             className={
               active === item.match
-                ? 'flex flex-1 flex-col items-center border-t-2 border-primary pt-1 font-bold text-primary'
-                : 'flex flex-1 flex-col items-center pt-1 text-on-surface-variant'
+                ? 'flex w-1/4 flex-col items-center border-t-2 border-primary pt-1 font-bold text-primary'
+                : 'flex w-1/4 flex-col items-center pt-1 text-on-surface-variant'
             }
           >
             <span className="material-symbols-outlined">{item.icon}</span>
