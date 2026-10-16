@@ -8,7 +8,7 @@ import type { Property, UnavailableReason } from '@/types/property';
 // Reason options depend on the listing type: a property for sale is "sold",
 // one for rent/shortlet is "rented". "Taken off the market" covers everything
 // else (owner changed their mind, listing expired, etc.).
-function reasonOptions(listingType: Property['listingType']): { value: UnavailableReason; label: string }[] {
+function reasonOptions(listingType: Property['listingType']): { value: Exclude<UnavailableReason, 'removed'>; label: string }[] {
   return [
     listingType === 'sale'
       ? { value: 'sold', label: 'Sold' }
@@ -29,7 +29,7 @@ export function ListingAvailabilityButton({
   onChange: (updated: Property) => void;
 }) {
   const [open, setOpen] = useState(false);
-  const [reason, setReason] = useState<UnavailableReason>(reasonOptions(listing.listingType)[0].value);
+  const [reason, setReason] = useState<Exclude<UnavailableReason, 'removed'>>(reasonOptions(listing.listingType)[0].value);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -61,6 +61,11 @@ export function ListingAvailabilityButton({
 
   // Drafts aren't published, so there's nothing to hide or restore.
   if (listing.status === 'draft') return null;
+
+  // Taken down by an admin — only an admin can restore it.
+  if (listing.unavailableReason === 'removed') {
+    return <span className="label-sm text-error">Removed by EstateAI</span>;
+  }
 
   if (isUnavailable) {
     return (

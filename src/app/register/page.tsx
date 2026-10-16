@@ -1,6 +1,6 @@
 'use client';
 
-import { FormEvent, useEffect, useState } from 'react';
+import { FormEvent, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { api, ApiClientError } from '@/lib/api';
@@ -38,8 +38,12 @@ export default function RegisterPage() {
   // racing the explicit push in handleSubmit) — mismatched targets meant
   // this one silently won and dashboard, not home, is exactly what
   // shouldn't happen after registering.
+  // After a fresh registration the destination is /verify-email (set in
+  // handleSubmit), so this effect must stand down once we've registered —
+  // otherwise it would win the race and send the new agent to '/' instead.
+  const justRegistered = useRef(false);
   useEffect(() => {
-    if (!isLoading && isAuthenticated) router.push('/');
+    if (!isLoading && isAuthenticated && !justRegistered.current) router.push('/');
   }, [isLoading, isAuthenticated, router]);
 
   const [role, setRole] = useState<Role>('agent');
@@ -67,8 +71,11 @@ export default function RegisterPage() {
         businessName: businessName || undefined,
         primaryLocation: primaryLocation || undefined,
       });
+      justRegistered.current = true;
       login(token);
-      router.push('/');
+      // Straight to entering the emailed code — non-blocking, there's a
+      // "Skip for now" link and a dashboard reminder banner.
+      router.push('/verify-email');
     } catch (err) {
       setError(err instanceof ApiClientError ? err.message : 'Registration failed. Please try again.');
     } finally {

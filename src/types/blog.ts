@@ -21,30 +21,3 @@ export interface BlogPostSummary {
 // Same shape as the list — GET /api/blog/:slug returns one full post, not a
 // reduced one.
 export type BlogPost = BlogPostSummary;
-
-// What the admin-only /api/blog-admin endpoints return — every status, plus
-// fields the public shape strips.
-export interface AdminBlogPost {
-  _id: string;
-  title: string;
-  slug: string;
-  excerpt: string;
-  bodyMarkdown: string;
-  coverImage?: string;
-  tags: string[];
-  status: BlogPostStatus;
-  author: string;
-  publishedAt?: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface BlogPostInput {
-  title: string;
-  slug?: string;
-  excerpt: string;
-  bodyMarkdown: string;
-  coverImage?: string;
-  tags: string[];
-  status: BlogPostStatus;
-}

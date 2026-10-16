@@ -8,7 +8,6 @@ import type {
   UnavailableReason,
 } from '@/types/property';
 import { getVisitorId } from './visitor';
-import type { AdminBlogPost, BlogPostInput } from '@/types/blog';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/api';
 
@@ -88,7 +87,7 @@ export interface ListingPerformance {
   title: string;
   city: string;
   status: string;
-  unavailableReason?: 'sold' | 'rented' | 'withdrawn';
+  unavailableReason?: 'sold' | 'rented' | 'withdrawn' | 'removed';
   views: number;
   uniqueVisitors: number;
   contactClicks: number;
@@ -128,8 +127,10 @@ export const api = {
       body: JSON.stringify({ token, newPassword }),
     }),
 
-  verifyEmail: (token: string) =>
-    request<{ message: string }>('/auth/verify-email', { method: 'POST', body: JSON.stringify({ token }) }),
+  // The code the agent received by email — needs the agent's login token,
+  // which request() attaches.
+  verifyEmail: (code: string) =>
+    request<{ message: string }>('/auth/verify-email', { method: 'POST', body: JSON.stringify({ code }) }),
 
   resendVerification: () =>
     request<{ message: string; alreadyVerified: boolean }>('/auth/resend-verification', { method: 'POST' }),
@@ -147,7 +148,7 @@ export const api = {
 
   // Take a listing off the market (hidden from the public, kept in the
   // agent's dashboard) or put it back.
-  setListingAvailability: (id: string, input: { available: true } | { available: false; reason: UnavailableReason }) =>
+  setListingAvailability: (id: string, input: { available: true } | { available: false; reason: Exclude<UnavailableReason, 'removed'> }) =>
     request<{ listing: Property }>(`/listings/${id}/availability`, { method: 'PATCH', body: JSON.stringify(input) }),
 
   // Public — basic text/city matching, not AI-ranked (see listing.service.ts).
@@ -256,20 +257,4 @@ export const api = {
   },
 
   getAgent: (id: string) => request<{ agent: PublicAgent }>(`/users/agents/${id}`),
-
-  // Admin-only — the public blog reads (list/by-slug) go through
-  // lib/publicBlogApi.ts instead, since those run in Server Components
-  // where this request() helper's localStorage-backed token lookup isn't
-  // available.
-  listAllBlogPosts: () => request<{ posts: AdminBlogPost[] }>('/blog-admin'),
-
-  getBlogPostAdmin: (id: string) => request<{ post: AdminBlogPost }>(`/blog-admin/${id}`),
-
-  createBlogPost: (input: BlogPostInput) =>
-    request<{ post: AdminBlogPost }>('/blog-admin', { method: 'POST', body: JSON.stringify(input) }),
-
-  updateBlogPost: (id: string, input: Partial<BlogPostInput>) =>
-    request<{ post: AdminBlogPost }>(`/blog-admin/${id}`, { method: 'PATCH', body: JSON.stringify(input) }),
-
-  deleteBlogPost: (id: string) => request<Record<string, never>>(`/blog-admin/${id}`, { method: 'DELETE' }),
 };

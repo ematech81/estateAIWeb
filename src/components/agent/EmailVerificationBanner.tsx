@@ -1,47 +1,24 @@
-'use client';
-
-import { useState } from 'react';
-import { api } from '@/lib/api';
+import Link from 'next/link';
 
 // Shown on the dashboard only (not every agent page) — a persistent
 // reminder on every screen would read as naggy; the dashboard is the one
 // page an agent reliably lands on. Non-blocking: an unverified agent can
-// still use the app fully, this is a nudge, not a gate.
+// still use the app fully, this is a nudge, not a gate. Verification itself
+// happens on /verify-email, where the agent enters the code we emailed them
+// (and can ask for a new one).
 export function EmailVerificationBanner() {
-  const [status, setStatus] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle');
-
-  async function handleResend() {
-    setStatus('sending');
-    try {
-      await api.resendVerification();
-      setStatus('sent');
-    } catch {
-      setStatus('error');
-    }
-  }
-
   return (
     <div className="flex flex-col items-start justify-between gap-3 rounded-lg border border-tertiary-container bg-tertiary-container/10 p-4 sm:flex-row sm:items-center">
       <div className="flex items-center gap-3">
         <span className="material-symbols-outlined text-tertiary-container">mark_email_unread</span>
-        <p className="body-md text-on-surface">
-          {status === 'sent' ? (
-            <>Verification email sent — check your inbox.</>
-          ) : (
-            <>Please verify your email address to keep full access to your account.</>
-          )}
-        </p>
+        <p className="body-md text-on-surface">Please verify your email address with the code we sent you.</p>
       </div>
-      {status !== 'sent' && (
-        <button
-          type="button"
-          onClick={handleResend}
-          disabled={status === 'sending'}
-          className="label-md shrink-0 whitespace-nowrap text-trust-blue-900 underline hover:opacity-80 disabled:opacity-50"
-        >
-          {status === 'sending' ? 'Sending…' : status === 'error' ? 'Could not send — try again' : 'Resend email'}
-        </button>
-      )}
+      <Link
+        href="/verify-email"
+        className="label-md shrink-0 whitespace-nowrap rounded-lg bg-trust-blue-900 px-4 py-2 text-white transition-opacity hover:opacity-90"
+      >
+        Enter code
+      </Link>
     </div>
   );
 }

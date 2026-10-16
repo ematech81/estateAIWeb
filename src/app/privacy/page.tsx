@@ -48,7 +48,7 @@ We do not use tracking cookies. To keep you signed in, we store your session tok
 
 ## 6. Data Security
 
-Passwords are hashed (never stored in plain text). Password-reset and email-verification links use single-use, time-limited tokens that are themselves stored only as a hash, so they can't be reconstructed from our database. We use industry-standard practices to protect your data, but no system is perfectly secure, and we cannot guarantee absolute security.
+Passwords are hashed (never stored in plain text). Password-reset links and email-verification codes are single-use and time-limited, and are stored only as a hash, so they can't be reconstructed from our database. We use industry-standard practices to protect your data, but no system is perfectly secure, and we cannot guarantee absolute security.
 
 ## 7. International Users
 

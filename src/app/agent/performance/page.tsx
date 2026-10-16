@@ -131,7 +131,7 @@ export default function AgentPerformancePage() {
                             <p className="label-sm text-on-surface-variant">
                               {l.city}
                               {l.status === 'inactive'
-                                ? ` · ${l.unavailableReason === 'sold' ? 'sold' : l.unavailableReason === 'rented' ? 'rented' : 'unavailable'}`
+                                ? ` · ${l.unavailableReason === 'sold' || l.unavailableReason === 'rented' || l.unavailableReason === 'removed' ? l.unavailableReason : 'unavailable'}`
                                 : l.status !== 'active'
                                   ? ` · ${l.status.replace('_', ' ')}`
                                   : ''}

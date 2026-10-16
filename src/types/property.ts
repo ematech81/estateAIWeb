@@ -17,7 +17,8 @@ export type PropertyType =
 export type PricePeriod = 'yearly' | 'monthly' | 'one_time' | 'nightly';
 export type PropertyStatus = 'draft' | 'pending_review' | 'active' | 'inactive';
 // Why an 'inactive' listing was taken off the market.
-export type UnavailableReason = 'sold' | 'rented' | 'withdrawn';
+// 'removed' is set only by an EstateAI admin (moderation).
+export type UnavailableReason = 'sold' | 'rented' | 'withdrawn' | 'removed';
 
 export interface PropertyPrice {
   amount: number;

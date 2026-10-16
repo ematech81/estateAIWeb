@@ -164,7 +164,7 @@ const STATUS_META: Record<Property['status'], { label: string; icon: string; cla
 
 // An unavailable listing is labelled by *why* (Sold / Rented / Unavailable)
 // rather than a generic "Inactive".
-const UNAVAILABLE_LABEL = { sold: 'Sold', rented: 'Rented', withdrawn: 'Unavailable' } as const;
+const UNAVAILABLE_LABEL = { sold: 'Sold', rented: 'Rented', withdrawn: 'Unavailable', removed: 'Removed' } as const;
 
 function ListingCard({ listing, onChange }: { listing: Property; onChange: (updated: Property) => void }) {
   const base = STATUS_META[listing.status];

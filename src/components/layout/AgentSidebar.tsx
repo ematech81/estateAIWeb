@@ -61,8 +61,10 @@ export function AgentSidebar() {
           </span>
           <div>
             <p className="label-md font-bold text-primary">{user?.name ?? 'Agent'}</p>
-            <p className="label-sm capitalize text-on-surface-variant">
-              {user?.verificationStatus ?? '…'}
+            {/* Email status, not the identity verificationStatus — that one
+                has no flow yet and read "Unverified" for everyone. */}
+            <p className="label-sm text-on-surface-variant">
+              {user ? (user.emailVerified ? 'Email verified' : 'Email not verified') : '…'}
             </p>
           </div>
         </div>

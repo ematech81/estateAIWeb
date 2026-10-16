@@ -31,16 +31,6 @@ export function Header() {
         <div className="flex items-center gap-4">
           {isAuthenticated ? (
             <>
-              {/* Only the admin account (see api/scripts/promoteToAdmin.ts)
-                  ever sees this — it's how they reach the authoring UI. */}
-              {user?.role === 'admin' && (
-                <Link
-                  href="/admin/blog"
-                  className="label-md hidden text-primary transition-opacity hover:opacity-80 md:block"
-                >
-                  Admin
-                </Link>
-              )}
               {/* Logout lives on the dashboard now (and in AgentSidebar
                   throughout the agent area) — this marketing header no
                   longer duplicates it. Dashboard/Add-a-listing swap the
