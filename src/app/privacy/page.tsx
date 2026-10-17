@@ -22,7 +22,7 @@ This Privacy Policy explains what personal information EstateAI ("we," "us," or 
 ## 2. How We Use Your Information
 
 - To operate the Service: creating your account, publishing your listings, connecting Seekers with Agents.
-- To process AI-assisted listing extraction: when you use the AI-assisted listing tool, the text you provide is sent to our AI provider (Anthropic) solely to extract structured listing fields from it. It is not used to train third-party models.
+- To process AI-assisted listing extraction: when you use the AI-assisted listing tool, the text you provide is sent to our AI provider (OpenAI) solely to extract structured listing fields from it. It is not used to train third-party models.
 - To send transactional email: account verification, password reset, and similar account-related messages, sent through our email provider (Brevo). We do not send marketing email unless you separately opt in to a feature that requests it.
 - To host uploaded photos, via our media storage provider (Cloudinary).
 - To store your data securely, via our database provider (MongoDB Atlas).
@@ -31,7 +31,7 @@ This Privacy Policy explains what personal information EstateAI ("we," "us," or 
 
 We use the following service providers to operate EstateAI. Each only receives the data necessary to perform its function for us, and none are permitted to use your data for their own purposes:
 
-- **Anthropic** — processes listing description text you submit, to extract structured details.
+- **OpenAI** — processes listing description text you submit, to extract structured details.
 - **Cloudinary** — stores and serves photos you upload.
 - **Brevo** — delivers transactional emails (password reset, email verification) on our behalf.
 - **MongoDB Atlas** — hosts our database.
